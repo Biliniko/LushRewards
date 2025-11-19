@@ -23,7 +23,7 @@ public class RewardModuleManager {
 
         File modulesDirectory = new File(LushRewards.getInstance().getDataFolder(), "modules");
 
-
+        // TODO: Load modules
 
         if (this.modules.isEmpty()) {
             throw new IllegalStateException("Failed to find any rewards modules in the modules directory");
