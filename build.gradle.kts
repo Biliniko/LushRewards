@@ -1,5 +1,5 @@
 plugins {
-    java
+    `java-library`
     `maven-publish`
     id("com.gradleup.shadow") version("8.3.0")
     id("xyz.jpenilla.run-paper") version("2.2.4")
@@ -41,7 +41,7 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 tasks {
@@ -75,11 +75,5 @@ tasks {
 
     runServer {
         minecraftVersion("1.21.1")
-    }
-}
-
-tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
     }
 }
