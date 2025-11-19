@@ -83,6 +83,15 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
         placeholder.register();
 
         LushRewards.getInstance().getLogger().info("Successfully loaded " + minutesToReward.size() + " reward collections from 'goals'");
+
+        Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
+        if (!onlinePlayers.isEmpty()) {
+            for (Player onlinePlayer : onlinePlayers) {
+                getOrLoadUserData(onlinePlayer.getUniqueId(), true);
+            }
+
+            LushRewards.getInstance().getLogger().info("Successfully loaded '" + id + "' user data for online players");
+        }
     }
 
     public void checkForReset(RewardUser rewardUser, UserData userData) {
