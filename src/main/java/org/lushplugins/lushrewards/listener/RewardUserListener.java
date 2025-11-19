@@ -3,9 +3,7 @@ package org.lushplugins.lushrewards.listener;
 import org.bukkit.event.Listener;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.user.RewardUser;
-import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTracker;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTrackerModule;
+import org.lushplugins.lushrewards.playtime.PlaytimeTracker;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -20,7 +18,7 @@ public class RewardUserListener implements Listener {
         Player player = event.getPlayer();
         LushRewards.getInstance().getDataManager().getOrLoadRewardUser(player.getUniqueId()).thenAccept((rewardUser) -> {
             rewardUser.setUsername(player.getName());
-            LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).ifPresent(module -> ((PlaytimeTrackerModule) module).startPlaytimeTracker(player));
+            LushRewards.getInstance().getPlaytimeTrackerManager().ifEnabled(playtimeTracker -> playtimeTracker.startPlaytimeTracker(player));
         });
         LushRewards.getInstance().getDataManager().loadModulesUserData(player.getUniqueId());
     }
@@ -32,8 +30,8 @@ public class RewardUserListener implements Listener {
         RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
 
         if (rewardUser != null) {
-            LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).ifPresent(module -> {
-                PlaytimeTracker playtimeTracker = ((PlaytimeTrackerModule) module).stopPlaytimeTracker(uuid);
+            LushRewards.getInstance().getPlaytimeTrackerManager().ifEnabled(playtimeTrackerManager -> {
+                PlaytimeTracker playtimeTracker = playtimeTrackerManager.stopPlaytimeTracker(uuid);
                 if (playtimeTracker != null) {
                     rewardUser.setMinutesPlayed(playtimeTracker.getGlobalPlaytime());
                 }

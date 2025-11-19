@@ -18,7 +18,7 @@ import org.lushplugins.lushrewards.user.RewardUser;
 import org.lushplugins.lushrewards.reward.module.playtimerewards.PlaytimeRewardsModule;
 import org.lushplugins.lushrewards.migrator.Migrator;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTrackerModule;
+import org.lushplugins.lushrewards.playtime.PlaytimeTrackerManager;
 import org.lushplugins.lushrewards.notification.NotificationHandler;
 import org.lushplugins.lushrewards.user.UserCache;
 import org.lushplugins.lushrewards.utils.lamp.contextparameter.RewardUserContextParameter;
@@ -28,11 +28,9 @@ import org.lushplugins.lushrewards.utils.lamp.response.StringMessageResponseHand
 import org.lushplugins.lushrewards.utils.placeholder.LocalPlaceholders;
 import org.lushplugins.lushrewards.utils.gson.LocalDateTypeAdapter;
 import org.lushplugins.lushrewards.utils.gson.UserDataExclusionStrategy;
-import org.bukkit.Bukkit;
 import org.lushplugins.lushrewards.config.ConfigManager;
 import org.lushplugins.lushrewards.user.DataManager;
 import org.lushplugins.lushrewards.listener.RewardUserListener;
-import org.bukkit.util.FileUtil;
 import org.lushplugins.lushlib.LushLib;
 import org.lushplugins.lushlib.plugin.SpigotPlugin;
 import org.lushplugins.lushrewards.utils.placeholderhandler.RewardModuleParameterProvider;
@@ -43,10 +41,7 @@ import org.lushplugins.rewardsapi.api.reward.RewardTypes;
 import revxrsal.commands.bukkit.BukkitLamp;
 import space.arim.morepaperlib.MorePaperLib;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -66,6 +61,7 @@ public final class LushRewards extends SpigotPlugin {
     private ConfigManager configManager;
     private RewardModuleManager rewardModuleManager;
     private DataManager dataManager; // TODO: Remove
+    private PlaytimeTrackerManager playtimeTrackerManager;
     private NotificationHandler notificationHandler;
     private LocalPlaceholders localPlaceholders;
     private UserCache userCache;
@@ -87,6 +83,7 @@ public final class LushRewards extends SpigotPlugin {
 
     @Override
     public void onEnable() {
+        this.playtimeTrackerManager = new PlaytimeTrackerManager();
         this.notificationHandler = new NotificationHandler();
         this.localPlaceholders = new LocalPlaceholders();
 
@@ -111,12 +108,6 @@ public final class LushRewards extends SpigotPlugin {
             .build();
 
         registerListener(new RewardUserListener());
-
-        getModule(RewardModule.Type.PLAYTIME_TRACKER).ifPresent(module -> {
-            if (module instanceof PlaytimeTrackerModule playtimeTracker) {
-                Bukkit.getOnlinePlayers().forEach(playtimeTracker::startPlaytimeTracker);
-            }
-        });
 
         RewardsAPI.getMorePaperLib().scheduling().asyncScheduler().runAtFixedRate(
             () -> {
@@ -158,6 +149,11 @@ public final class LushRewards extends SpigotPlugin {
 
     @Override
     public void onDisable() {
+        if (playtimeTrackerManager != null) {
+            playtimeTrackerManager.disable();
+            playtimeTrackerManager = null;
+        }
+
         if (notificationHandler != null) {
             notificationHandler.stopNotificationTask();
             notificationHandler = null;
@@ -194,6 +190,10 @@ public final class LushRewards extends SpigotPlugin {
 
     public DataManager getDataManager() {
         return dataManager;
+    }
+
+    public PlaytimeTrackerManager getPlaytimeTrackerManager() {
+        return playtimeTrackerManager;
     }
 
     public NotificationHandler getNotificationHandler() {

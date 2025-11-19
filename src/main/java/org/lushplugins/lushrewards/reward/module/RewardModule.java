@@ -66,8 +66,4 @@ public abstract class RewardModule {
             }
         });
     }
-
-    public static class Type {
-        public static final String PLAYTIME_TRACKER = "playtime-tracker";
-    }
 }

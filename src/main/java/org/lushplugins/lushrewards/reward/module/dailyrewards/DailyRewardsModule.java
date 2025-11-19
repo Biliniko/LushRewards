@@ -1,7 +1,6 @@
 package org.lushplugins.lushrewards.reward.module.dailyrewards;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.lushplugins.lushlib.module.Module;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.reward.module.StoresUserData;
 import org.lushplugins.lushrewards.user.RewardUser;
@@ -9,7 +8,7 @@ import org.lushplugins.lushrewards.exception.InvalidRewardException;
 import org.lushplugins.lushrewards.gui.GuiDisplayer;
 import org.lushplugins.lushrewards.gui.GuiFormat;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTrackerModule;
+import org.lushplugins.lushrewards.playtime.PlaytimeTrackerManager;
 import org.lushplugins.lushrewards.reward.RewardDay;
 import org.lushplugins.lushrewards.utils.Debugger;
 import org.lushplugins.lushlib.gui.inventory.Gui;
@@ -128,9 +127,9 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
             return true;
         }
 
-        Optional<Module> optionalModule = LushRewards.getInstance().getModule(Type.PLAYTIME_TRACKER);
-        if (optionalModule.isPresent() && optionalModule.get() instanceof PlaytimeTrackerModule module) {
-            return module.getPlaytimeTracker(player.getUniqueId()).getSessionPlaytime() > requiredPlaytime;
+        PlaytimeTrackerManager playtimeTrackerManager = LushRewards.getInstance().getPlaytimeTrackerManager();
+        if (playtimeTrackerManager.isEnabled()) {
+            return playtimeTrackerManager.getPlaytimeTracker(player.getUniqueId()).getSessionPlaytime() > requiredPlaytime;
         }
 
         return true;

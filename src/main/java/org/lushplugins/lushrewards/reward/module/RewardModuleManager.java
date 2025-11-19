@@ -1,7 +1,6 @@
 package org.lushplugins.lushrewards.reward.module;
 
 import org.lushplugins.lushrewards.LushRewards;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTrackerModule;
 
 import java.io.File;
 import java.util.*;
@@ -30,13 +29,7 @@ public class RewardModuleManager {
         }
 
         if (this.modules.values().stream().anyMatch(RewardModule::requiresPlaytimeTracker)) {
-            if (LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).isEmpty()) {
-                PlaytimeTrackerModule playtimeTrackerModule = new PlaytimeTrackerModule();
-                LushRewards.getInstance().registerModule(playtimeTrackerModule);
-                playtimeTrackerModule.enable();
-            }
-        } else {
-            LushRewards.getInstance().unregisterModule(RewardModule.Type.PLAYTIME_TRACKER);
+            LushRewards.getInstance().getPlaytimeTrackerManager().enable();
         }
     }
 

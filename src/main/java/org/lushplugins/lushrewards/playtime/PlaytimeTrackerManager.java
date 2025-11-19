@@ -1,8 +1,6 @@
-package org.lushplugins.lushrewards.playtimetracker;
+package org.lushplugins.lushrewards.playtime;
 
-import org.lushplugins.lushrewards.LushRewards;
-import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushlib.module.Module;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lushplugins.rewardsapi.api.RewardsAPI;
 import space.arim.morepaperlib.scheduling.ScheduledTask;
@@ -11,39 +9,51 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
-public class PlaytimeTrackerModule extends Module {
+public class PlaytimeTrackerManager {
+    public boolean enabled;
     private ConcurrentHashMap<UUID, PlaytimeTracker> playtimeTrackers;
     private ScheduledTask heartbeat;
 
-    public PlaytimeTrackerModule() {
-        super(RewardModule.Type.PLAYTIME_TRACKER);
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    @Override
-    public void onEnable() {
+    public void ifEnabled(Consumer<PlaytimeTrackerManager> action) {
+        if (enabled) {
+            action.accept(this);
+        }
+    }
+
+    public void enable() {
+        if (enabled) {
+            disable();
+        }
+
         playtimeTrackers = new ConcurrentHashMap<>();
 
         heartbeat = RewardsAPI.getMorePaperLib().scheduling().asyncScheduler().runAtFixedRate(
-            () -> {
-                if (LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).isEmpty()) {
-                    heartbeat.cancel();
-                    return;
+            () -> playtimeTrackers.values().forEach(playtimeTracker -> {
+                if (!playtimeTracker.tick()) {
+                    this.stopPlaytimeTracker(playtimeTracker.getPlayer().getUniqueId());
                 }
-
-                playtimeTrackers.values().forEach(playtimeTracker -> {
-                    if (!playtimeTracker.tick()) {
-                        this.stopPlaytimeTracker(playtimeTracker.getPlayer().getUniqueId());
-                    }
-                });
-            },
-            Duration.of(0, ChronoUnit.MILLIS),
+            }),
+            Duration.ZERO,
             Duration.of(1000, ChronoUnit.MILLIS)
         );
+
+        enabled = true;
+        Bukkit.getOnlinePlayers().forEach(this::startPlaytimeTracker);
     }
 
-    @Override
-    public void onDisable() {
+    public void disable() {
+        if (!enabled) {
+            return;
+        }
+
+        enabled = false;
+
         if (heartbeat != null) {
             heartbeat.cancel();
             heartbeat = null;

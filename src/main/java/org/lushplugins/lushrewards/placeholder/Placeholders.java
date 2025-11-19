@@ -1,10 +1,8 @@
 package org.lushplugins.lushrewards.placeholder;
 
 import org.bukkit.entity.Player;
-import org.lushplugins.lushlib.module.Module;
 import org.lushplugins.lushrewards.LushRewards;
-import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTrackerModule;
+import org.lushplugins.lushrewards.playtime.PlaytimeTrackerManager;
 import org.lushplugins.placeholderhandler.annotation.Placeholder;
 import org.lushplugins.placeholderhandler.annotation.SubPlaceholder;
 
@@ -40,9 +38,9 @@ public class Placeholders {
             return null;
         }
 
-        Module playtimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).orElse(null);
-        if (playtimeTracker instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-            return String.valueOf(playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId()).getGlobalPlaytime());
+        PlaytimeTrackerManager playtimeTrackerManager = LushRewards.getInstance().getPlaytimeTrackerManager();
+        if (playtimeTrackerManager.isEnabled()) {
+            return String.valueOf(playtimeTrackerManager.getPlaytimeTracker(player.getUniqueId()).getGlobalPlaytime());
         } else {
             return null;
         }
@@ -54,9 +52,9 @@ public class Placeholders {
             return null;
         }
 
-        Module playtimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).orElse(null);
-        if (playtimeTracker instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-            return String.valueOf(playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId()).getSessionPlaytime());
+        PlaytimeTrackerManager playtimeTrackerManager = LushRewards.getInstance().getPlaytimeTrackerManager();
+        if (playtimeTrackerManager.isEnabled()) {
+            return String.valueOf(playtimeTrackerManager.getPlaytimeTracker(player.getUniqueId()).getSessionPlaytime());
         } else {
             return null;
         }
@@ -68,9 +66,9 @@ public class Placeholders {
             return null;
         }
 
-        Module playtimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).orElse(null);
-        if (playtimeTracker instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-            return String.valueOf(playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId()).getSessionPlaytime());
+        PlaytimeTrackerManager playtimeTrackerManager = LushRewards.getInstance().getPlaytimeTrackerManager();
+        if (playtimeTrackerManager.isEnabled()) {
+            return String.valueOf(playtimeTrackerManager.getPlaytimeTracker(player.getUniqueId()).getSessionPlaytime());
         } else {
             return null;
         }

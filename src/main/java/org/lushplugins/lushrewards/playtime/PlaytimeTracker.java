@@ -1,32 +1,32 @@
-package org.lushplugins.lushrewards.playtimetracker;
+package org.lushplugins.lushrewards.playtime;
 
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.user.RewardUser;
-import org.lushplugins.lushrewards.reward.module.RewardModule;
 import org.lushplugins.lushrewards.reward.module.playtimerewards.PlaytimeRewardsModule;
-import org.lushplugins.lushlib.module.Module;
 import org.lushplugins.lushlib.utils.SimpleLocation;
 import org.bukkit.entity.Player;
 
-import java.util.Optional;
-
 public class PlaytimeTracker {
+    /**
+     * Time idle before marked as inactive (in seconds)
+     */
     private static final int IDLE_TIME_TO_AFK = 300;
+
     private final Player player;
     private SimpleLocation lastLocation;
-    private boolean afk;
-    /**
-     * Current session time (in seconds)
-     */
-    private int sessionTime;
-    /**
-     * Current idle time (in seconds), returns {@code 0} if not idle
-     */
-    private int idleTime;
+    private boolean afk = false;
     /**
      * All-time playtime (in minutes), this value excludes idle time
      */
     private int globalTime;
+    /**
+     * Current session time (in seconds)
+     */
+    private int sessionTime = 0;
+    /**
+     * Current idle time (in seconds), returns {@code 0} if not idle
+     */
+    private int idleTime = 0;
 
     public PlaytimeTracker(Player player) {
         RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
@@ -35,9 +35,6 @@ public class PlaytimeTracker {
         }
 
         this.player = player;
-        this.afk = false;
-        this.sessionTime = 0;
-        this.idleTime = 0;
         this.globalTime = rewardUser.getMinutesPlayed();
         this.lastLocation = SimpleLocation.adapt(player.getLocation());
     }
@@ -100,7 +97,7 @@ public class PlaytimeTracker {
             return false;
         }
 
-        if (LushRewards.getInstance().getConfigManager().getPlaytimeIgnoreAfk()) {
+        if (LushRewards.getInstance().getConfigManager().shouldPlaytimeTrackerIgnoreAfk()) {
             whileActive();
         } else {
             if (hasMoved()) {
@@ -147,10 +144,9 @@ public class PlaytimeTracker {
             if (rewardUser != null) {
                 rewardUser.setMinutesPlayed(globalTime);
             } else {
-                Optional<Module> optionalModule = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER);
-                if (optionalModule.isPresent() && optionalModule.get() instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-                    playtimeTrackerModule.stopPlaytimeTracker(player.getUniqueId());
-                }
+                LushRewards.getInstance().getPlaytimeTrackerManager().ifEnabled(playtimeTrackerManager -> {
+                    playtimeTrackerManager.stopPlaytimeTracker(player.getUniqueId());
+                });
             }
         }
     }

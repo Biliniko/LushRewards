@@ -5,9 +5,7 @@ import org.bukkit.inventory.Inventory;
 import org.lushplugins.lushlib.utils.DisplayItemStack;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.gui.GuiFormat;
-import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTracker;
-import org.lushplugins.lushrewards.playtimetracker.PlaytimeTrackerModule;
+import org.lushplugins.lushrewards.playtime.PlaytimeTracker;
 import org.lushplugins.lushrewards.utils.Debugger;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.lushplugins.lushlib.gui.inventory.Gui;
@@ -44,8 +42,8 @@ public class PlaytimeRewardsGui extends Gui {
         inventory.clear();
         clearButtons();
 
-        LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER).ifPresent(playtimeTrackerModule -> {
-            PlaytimeTracker playtimeTracker = ((PlaytimeTrackerModule) playtimeTrackerModule).getPlaytimeTracker(player.getUniqueId());
+        LushRewards.getInstance().getPlaytimeTrackerManager().ifEnabled(playtimeTrackerManager -> {
+            PlaytimeTracker playtimeTracker = playtimeTrackerManager.getPlaytimeTracker(player.getUniqueId());
 
             module.getOrLoadUserData(player.getUniqueId(), true)
                 .completeOnTimeout(null, 15, TimeUnit.SECONDS)
