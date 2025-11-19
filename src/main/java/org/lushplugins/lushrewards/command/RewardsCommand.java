@@ -44,6 +44,7 @@ public class RewardsCommand {
     }
 
     @Subcommand("about")
+    @CommandPermission("lushrewards.about")
     public void about(CommandSender sender) {
         ChatColorHandler.sendMessage(sender,
             "&#A5B8FE&lLushRewards &#C4B6FE(v" + LushRewards.getInstance().getDescription().getVersion() + ")",
@@ -59,6 +60,7 @@ public class RewardsCommand {
     }
 
     @Subcommand("claim")
+    @CommandPermission("lushrewards.use")
     public void claim(BukkitCommandActor actor, RewardUser user, @Optional RewardModule module) {
         Player player = actor.requirePlayer();
 
@@ -116,6 +118,7 @@ public class RewardsCommand {
     }
 
     @Subcommand({"import", "migrate"})
+    @CommandPermission("lushrewards.import")
     public void migrate(CommandSender sender, Migrator migrator) {
         long startMs = Instant.now().toEpochMilli();
         RewardsAPI.getMorePaperLib().scheduling().asyncScheduler().run(() -> {
