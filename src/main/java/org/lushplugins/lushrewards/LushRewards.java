@@ -17,7 +17,6 @@ import org.lushplugins.lushrewards.storage.StorageManager;
 import org.lushplugins.lushrewards.user.RewardUser;
 import org.lushplugins.lushrewards.reward.module.playtimerewards.PlaytimeRewardsModule;
 import org.lushplugins.lushrewards.migrator.Migrator;
-import org.lushplugins.lushrewards.migrator.Version3DataMigrator;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
 import org.lushplugins.lushrewards.playtimetracker.PlaytimeTrackerModule;
 import org.lushplugins.lushrewards.notification.NotificationHandler;
@@ -88,25 +87,6 @@ public final class LushRewards extends SpigotPlugin {
 
     @Override
     public void onEnable() {
-        File oldDataFolder = new File(getDataFolder().getParentFile(), "ActivityRewarder");
-        if (!getDataFolder().exists() && oldDataFolder.exists()) {
-            if (FileUtil.copy(oldDataFolder, getDataFolder())) {
-                File dataFolder = new File(getDataFolder(), "data");
-                for (File file : dataFolder.listFiles()) {
-                    file.delete();
-                }
-            }
-
-            getLogger().info("Importing data from 'ActivityRewarder', this could take a moment");
-            long start = Instant.now().toEpochMilli();
-            try {
-                new Version3DataMigrator().convert();
-            } catch (FileNotFoundException e) {
-                getLogger().severe("Failed to import data");
-            }
-            getLogger().info("Finished importing data (took " + (Instant.now().toEpochMilli() - start) + "ms)");
-        }
-
         this.notificationHandler = new NotificationHandler();
         this.localPlaceholders = new LocalPlaceholders();
 
