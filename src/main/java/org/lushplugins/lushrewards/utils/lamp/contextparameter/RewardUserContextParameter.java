@@ -12,6 +12,6 @@ public class RewardUserContextParameter implements ContextParameter<BukkitComman
 
     @Override
     public RewardUser resolve(@NotNull CommandParameter parameter, @NotNull ExecutionContext<BukkitCommandActor> context) {
-        return LushRewards.getInstance().getDataManager().getRewardUser(context.actor().requirePlayer());
+        return LushRewards.getInstance().getUserCache().getCachedUser(context.actor().requirePlayer().getUniqueId());
     }
 }

@@ -16,7 +16,7 @@ public class DailyRewardsPlaceholders {
 
     @SubPlaceholder("<module>_category")
     public String category(RewardUser user, DailyRewardsModule module) {
-        DailyRewardsUserData userData = user.getModuleData(module.getId(), DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(module.getId(), DailyRewardsUserData.class);
         if (userData == null) {
             return null;
         }
@@ -27,31 +27,31 @@ public class DailyRewardsPlaceholders {
 
     @SubPlaceholder("<moduleId>_collected")
     public String collected(RewardUser user, String moduleId) {
-        DailyRewardsUserData userData = user.getModuleData(moduleId, DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(moduleId, DailyRewardsUserData.class);
         return userData != null ? String.valueOf(userData.hasCollectedToday()) : null;
     }
 
     @SubPlaceholder("<moduleId>_day_num")
     public String dayNum(RewardUser user, String moduleId) {
-        DailyRewardsUserData userData = user.getModuleData(moduleId, DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(moduleId, DailyRewardsUserData.class);
         return userData != null ? String.valueOf(userData.getDayNum()) : null;
     }
 
     @SubPlaceholder("<moduleId>_streak")
     public String streak(RewardUser user, String moduleId) {
-        DailyRewardsUserData userData = user.getModuleData(moduleId, DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(moduleId, DailyRewardsUserData.class);
         return userData != null ? String.valueOf(userData.getStreak()) : "0";
     }
 
     @SubPlaceholder("<moduleId>_highest_streak")
     public String highestStreak(RewardUser user, String moduleId) {
-        DailyRewardsUserData userData = user.getModuleData(moduleId, DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(moduleId, DailyRewardsUserData.class);
         return userData != null ? String.valueOf(userData.getHighestStreak()) : "0";
     }
 
     @SubPlaceholder("<module>_total_rewards")
     public String totalRewards(RewardUser user, DailyRewardsModule module) {
-        DailyRewardsUserData userData = user.getModuleData(module.getId(), DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(module.getId(), DailyRewardsUserData.class);
         if (userData == null) {
             return null;
         }
@@ -61,7 +61,7 @@ public class DailyRewardsPlaceholders {
     }
 
     private DailyRewardCollection getRewardCollection(RewardUser user, DailyRewardsModule module, int dayNum) {
-        DailyRewardsUserData userData = user.getModuleData(module.getId(), DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(module.getId(), DailyRewardsUserData.class);
         if (userData == null) {
             return null;
         }

@@ -70,6 +70,10 @@ public class StorageManager {
         return runAsync(() -> storage.loadModuleUserDataJson(uuid, moduleId));
     }
 
+    public <T extends ModuleUserData> CompletableFuture<T> loadModuleUserData(UUID uuid, String moduleId, Class<T> userDataType) {
+        return runAsync(() -> storage.loadModuleUserData(uuid, moduleId, userDataType));
+    }
+
     public CompletableFuture<Void> saveModuleUserData(ModuleUserData userData) {
         return runAsync(() -> storage.saveModuleUserData(userData));
     }

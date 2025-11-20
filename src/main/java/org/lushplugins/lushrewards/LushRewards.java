@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
+import org.lushplugins.guihandler.GuiHandler;
+import org.lushplugins.guihandler.slot.SlotProvider;
 import org.lushplugins.lushlib.libraries.jackson.databind.ObjectMapper;
 import org.lushplugins.lushlib.libraries.jackson.databind.PropertyNamingStrategies;
 import org.lushplugins.lushlib.libraries.jackson.dataformat.yaml.YAMLFactory;
@@ -30,7 +32,6 @@ import org.lushplugins.lushrewards.utils.gson.LocalDateTypeAdapter;
 import org.lushplugins.lushrewards.utils.gson.UserDataExclusionStrategy;
 import org.lushplugins.lushrewards.config.ConfigManager;
 import org.lushplugins.lushrewards.user.DataManager;
-import org.lushplugins.lushrewards.listener.RewardUserListener;
 import org.lushplugins.lushlib.LushLib;
 import org.lushplugins.lushlib.plugin.SpigotPlugin;
 import org.lushplugins.lushrewards.utils.placeholderhandler.RewardModuleParameterProvider;
@@ -57,6 +58,7 @@ public final class LushRewards extends SpigotPlugin {
 
     private static LushRewards plugin;
 
+    private GuiHandler guiHandler;
     private Updater updater;
     private ConfigManager configManager;
     private RewardModuleManager rewardModuleManager;
@@ -83,6 +85,10 @@ public final class LushRewards extends SpigotPlugin {
 
     @Override
     public void onEnable() {
+        this.guiHandler = GuiHandler.builder(this)
+            .registerLabelProvider(' ', new SlotProvider())
+            .build();
+
         this.playtimeTrackerManager = new PlaytimeTrackerManager();
         this.notificationHandler = new NotificationHandler();
         this.localPlaceholders = new LocalPlaceholders();
@@ -106,8 +112,6 @@ public final class LushRewards extends SpigotPlugin {
             .notificationPermission("lushrewards.update")
             .notificationMessage("&#ffe27aA new &#e0c01b%plugin% &#ffe27aupdate is now available, type &#e0c01b'/rewards update' &#ffe27ato download it!")
             .build();
-
-        registerListener(new RewardUserListener());
 
         RewardsAPI.getMorePaperLib().scheduling().asyncScheduler().runAtFixedRate(
             () -> {
@@ -202,6 +206,10 @@ public final class LushRewards extends SpigotPlugin {
 
     public LocalPlaceholders getLocalPlaceholders() {
         return localPlaceholders;
+    }
+
+    public GuiHandler getGuiHandler() {
+        return guiHandler;
     }
 
     public Updater getUpdater() {

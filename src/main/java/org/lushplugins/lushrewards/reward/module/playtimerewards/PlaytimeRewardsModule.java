@@ -1,21 +1,22 @@
 package org.lushplugins.lushrewards.reward.module.playtimerewards;
 
 import org.bukkit.Bukkit;
+import org.lushplugins.guihandler.gui.Gui;
+import org.lushplugins.guihandler.gui.GuiLayer;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.reward.module.StoresUserData;
 import org.lushplugins.lushrewards.user.RewardUser;
 import org.lushplugins.lushrewards.exception.InvalidRewardException;
 import org.lushplugins.lushrewards.gui.GuiDisplayer;
-import org.lushplugins.lushrewards.gui.GuiFormat;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
 import org.lushplugins.lushrewards.reward.RewardCollection;
 import org.bukkit.configuration.ConfigurationSection;
-import org.lushplugins.lushlib.gui.inventory.Gui;
 import org.lushplugins.lushlib.libraries.chatcolor.ChatColorHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lushplugins.lushrewards.utils.Debugger;
+import org.lushplugins.lushrewards.utils.GuiTemplates;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -25,12 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @StoresUserData(PlaytimeRewardsUserData.class)
 public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer {
     private ConcurrentHashMap<Integer, PlaytimeRewardCollection> minutesToReward;
-    private PlaytimeRewardsPlaceholder placeholder;
     private int resetPlaytimeAt;
     private int refreshTime;
     private boolean receiveWithDailyRewards;
-    private GuiFormat guiFormat;
-    private PlaytimeRewardsGui.ScrollType scrollType;
+    private Gui.Builder gui;
 
     public PlaytimeRewardsModule(String id, ConfigurationSection config) {
         super(id, config);
@@ -54,11 +53,14 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
         receiveWithDailyRewards = config.getBoolean("give-with-daily-rewards");
         setShouldNotify(config.getBoolean("enable-notifications", false));
 
-        String guiTitle = config.getString("gui.title", "&8&lDaily Rewards");
         String templateType = config.getString("gui.template", "DEFAULT").toUpperCase();
-        GuiFormat.GuiTemplate guiTemplate = templateType.equals("CUSTOM") ? new GuiFormat.GuiTemplate(config.getStringList("gui.format")) : GuiFormat.GuiTemplate.valueOf(templateType);
-        this.guiFormat = new GuiFormat(guiTitle, guiTemplate);
-        this.scrollType = PlaytimeRewardsGui.ScrollType.valueOf(config.getString("gui.scroll-type", "FIXED").toUpperCase());
+        GuiLayer guiLayer = templateType.equals("CUSTOM") ? new GuiLayer(config.getStringList("gui.format")) : GuiTemplates.valueOf(templateType);
+        PlaytimeRewardsGui.ScrollType scrollType = PlaytimeRewardsGui.ScrollType.valueOf(config.getString("gui.scroll-type", "FIXED").toUpperCase());
+        this.gui = LushRewards.getInstance().getGuiHandler().prepare(new PlaytimeRewardsGui(this, scrollType))
+            .title(config.getString("gui.title", "&8&lPlaytime Rewards"))
+            .size(guiLayer.getSize())
+            .locked(true)
+            .applyLayer(guiLayer);
 
         ConfigurationSection itemTemplatesSection = config.getConfigurationSection("gui.item-templates");
         if (itemTemplatesSection != null) {
@@ -79,22 +81,19 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
             minutesToReward.put(minutes, rewardCollection);
         }
 
-        placeholder = new PlaytimeRewardsPlaceholder(id);
-        placeholder.register();
-
         LushRewards.getInstance().getLogger().info("Successfully loaded " + minutesToReward.size() + " reward collections from 'goals'");
 
         Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
         if (!onlinePlayers.isEmpty()) {
-            for (Player onlinePlayer : onlinePlayers) {
-                getOrLoadUserData(onlinePlayer.getUniqueId(), true);
+            for (RewardUser user : LushRewards.getInstance().getUserCache().getCachedUsers()) {
+                user.getModuleData(id, PlaytimeRewardsUserData.class);
             }
 
             LushRewards.getInstance().getLogger().info("Successfully loaded '" + id + "' user data for online players");
         }
     }
 
-    public void checkForReset(RewardUser rewardUser, UserData userData) {
+    public void checkForReset(RewardUser rewardUser, PlaytimeRewardsUserData userData) {
         if (resetPlaytimeAt <= 0) {
             return;
         }
@@ -106,7 +105,8 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
             userData.setPreviousDayEndPlaytime(rewardUser.getMinutesPlayed());
             Debugger.sendDebugMessage(String.format("Set last collected playtime for %s from %s to %s (Module: %s)", userData.getUniqueId(), userData.getLastCollectedPlaytime(), rewardUser.getMinutesPlayed(), this.getId()), Debugger.DebugMode.PLAYTIME);
             userData.setLastCollectedPlaytime(rewardUser.getMinutesPlayed());
-            saveUserData(userData);
+
+            LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
         }
     }
 
@@ -116,48 +116,37 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
         }
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
-            UserData userData = getUserData(player.getUniqueId());
-            if (rewardUser == null || userData == null) {
+            RewardUser user = LushRewards.getInstance().getUserCache().getCachedUser(player.getUniqueId());
+            if (user == null) {
                 continue;
             }
 
-            checkForReset(rewardUser, userData);
+            PlaytimeRewardsUserData userData = user.getCachedModuleData(this.id, PlaytimeRewardsUserData.class);
+            if (userData == null) {
+                continue;
+            }
+
+            checkForReset(user, userData);
         }
     }
 
-    @Override
-    public boolean hasClaimableRewards(Player player) {
-        return hasClaimableRewards(player, null);
-    }
+    public boolean hasClaimableRewardsAt(RewardUser user, Integer globalPlaytime) {
+        PlaytimeRewardsUserData userData = user.getCachedModuleData(this.id, PlaytimeRewardsUserData.class);
 
-    public boolean hasClaimableRewards(Player player, Integer globalPlaytime) {
-        RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
-        UserData userData = getUserData(player.getUniqueId());
-        if (rewardUser == null || userData == null) {
-            return false;
-        }
+        checkForReset(user, userData);
 
-        checkForReset(rewardUser, userData);
-
-        globalPlaytime = globalPlaytime != null ? globalPlaytime : rewardUser.getMinutesPlayed();
+        globalPlaytime = globalPlaytime != null ? globalPlaytime : user.getMinutesPlayed();
         int previousDayEnd = userData.getPreviousDayEndPlaytime();
         return !getRewardCollectionsInRange(userData.getLastCollectedPlaytime() - previousDayEnd, globalPlaytime - previousDayEnd).isEmpty();
     }
 
     @Override
-    public boolean claimRewards(Player player) {
-        return claimRewards(player, null);
+    public boolean hasClaimableRewards(Player player, RewardUser user) {
+        return hasClaimableRewardsAt(user, null);
     }
 
-    public boolean claimRewards(Player player, Integer globalPlaytime) {
-        RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
-        UserData userData = getUserData(player.getUniqueId());
-        if (rewardUser == null || userData == null) {
-            ChatColorHandler.sendMessage(player, "&#ff6969Failed to collect your reward user data, try relogging. If this continues inform an administrator");
-            LushRewards.getInstance().getLogger().warning("Failed to collect reward user data for '" + player.getName() + "', reward user was '" + (rewardUser != null ? "found" : "not found") + "', user data was '" + (userData != null ? "found" : "not found") + "'");
-            return false;
-        }
+    public boolean claimRewards(Player player, RewardUser user, Integer globalPlaytime) {
+        PlaytimeRewardsUserData userData = user.getCachedModuleData(this.id, PlaytimeRewardsUserData.class);
 
         boolean saveUserData = false;
         if (resetPlaytimeAt > 0 && userData.getStartDate().isEqual(LocalDate.now().minusDays(resetPlaytimeAt))) {
@@ -168,7 +157,7 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
             saveUserData = true;
         }
 
-        globalPlaytime = globalPlaytime != null ? globalPlaytime : rewardUser.getMinutesPlayed();
+        globalPlaytime = globalPlaytime != null ? globalPlaytime : user.getMinutesPlayed();
         int previousDayEnd = userData.getPreviousDayEndPlaytime();
         int playtime = globalPlaytime - previousDayEnd;
         int lastCollectedPlaytime = Math.max(userData.getLastCollectedPlaytime() - previousDayEnd, 0);
@@ -176,8 +165,9 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
         HashMap<PlaytimeRewardCollection, Integer> rewards = getRewardCollectionsInRange(lastCollectedPlaytime, playtime);
         if (rewards.isEmpty()) {
             if (saveUserData) {
-                saveUserData(userData);
+                LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
             }
+
             return false;
         }
 
@@ -201,8 +191,13 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
             .replace("%total_hours%", String.valueOf((int) Math.floor(playtime / 60D))));
 
         userData.setLastCollectedPlaytime(globalPlaytime);
-        saveUserData(userData);
+        LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
         return true;
+    }
+
+    @Override
+    public boolean claimRewards(Player player, RewardUser user) {
+        return claimRewards(player, user, null);
     }
 
     @Override
@@ -280,16 +275,8 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
         return shortestFrequency;
     }
 
-    public GuiFormat getGuiFormat() {
-        return guiFormat;
-    }
-
     @Override
-    public Gui getGui(Player player) {
-        return new PlaytimeRewardsGui(this, player);
-    }
-
-    public PlaytimeRewardsGui.ScrollType getScrollType() {
-        return scrollType;
+    public Gui.Builder getGui() {
+        return gui;
     }
 }

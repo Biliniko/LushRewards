@@ -86,7 +86,7 @@ public class ConfigManager {
                 if (rewardModuleType != null && RewardModuleTypes.contains(rewardModuleType)) {
                     modules.put(moduleId, RewardModuleTypes.constructModuleType(rewardModuleType, moduleId, moduleConfig));
                 } else {
-                    plugin.log(Level.SEVERE, "Module with id '%s' failed to register due to invalid value at 'type'"
+                    plugin.getLogger().severe("Module with id '%s' failed to register due to invalid value at 'type'"
                         .formatted(moduleId));
                 }
             });

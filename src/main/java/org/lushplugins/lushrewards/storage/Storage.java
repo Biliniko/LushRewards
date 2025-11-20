@@ -26,7 +26,7 @@ public interface Storage {
     default void disable() {}
 
     // TODO: RewardUser (not ModuleUserData) should not be stored as a json object
-    // New format should columns should be: uuid, username, minutesPlayed
+    // Columns in user table should be: uuid, username, minutesPlayed
     // Module data should continue to be stored as json in the modules table
     default RewardUser loadRewardUser(UUID uuid) {
         JsonObject json = loadModuleUserDataJson(uuid, null);
@@ -39,6 +39,7 @@ public interface Storage {
 
         try {
             json.addProperty("uuid", uuid.toString());
+            // TODO: Load module data for active modules
             json.add("moduleData", EMPTY_MAP_ELEMENT);
 
             return LushRewards.GSON.fromJson(json, RewardUser.class);
@@ -57,6 +58,8 @@ public interface Storage {
 
         saveModuleUserDataJson(uuid, null, json);
     }
+
+    JsonObject loadModuleUserDataJson(UUID uuid, String moduleId);
 
     default <T extends ModuleUserData> T loadModuleUserData(UUID uuid, @NotNull String moduleId, Class<T> userDataType) {
         JsonObject json = loadModuleUserDataJson(uuid, moduleId);
@@ -99,8 +102,6 @@ public interface Storage {
             return null;
         }
     }
-
-    JsonObject loadModuleUserDataJson(UUID uuid, String moduleId);
 
     void saveModuleUserDataJson(UUID uuid, String moduleId, JsonObject json);
 

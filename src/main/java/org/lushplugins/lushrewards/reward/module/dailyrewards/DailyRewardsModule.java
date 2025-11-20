@@ -1,23 +1,24 @@
 package org.lushplugins.lushrewards.reward.module.dailyrewards;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.lushplugins.guihandler.gui.Gui;
+import org.lushplugins.guihandler.gui.GuiLayer;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.reward.module.StoresUserData;
 import org.lushplugins.lushrewards.user.RewardUser;
 import org.lushplugins.lushrewards.exception.InvalidRewardException;
 import org.lushplugins.lushrewards.gui.GuiDisplayer;
-import org.lushplugins.lushrewards.gui.GuiFormat;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
 import org.lushplugins.lushrewards.playtime.PlaytimeTrackerManager;
 import org.lushplugins.lushrewards.reward.RewardDay;
 import org.lushplugins.lushrewards.utils.Debugger;
-import org.lushplugins.lushlib.gui.inventory.Gui;
 import org.lushplugins.lushlib.libraries.chatcolor.ChatColorHandler;
 import org.lushplugins.lushlib.utils.StringUtils;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.lushplugins.lushrewards.utils.GuiTemplates;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -32,11 +33,9 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
     private boolean streakBypass;
     private Sound defaultRedeemSound;
     private String upcomingCategory;
-    private boolean dateAsAmount;
     private String rewardPlaceholderClaimed;
     private String rewardPlaceholderUnclaimed;
-    private DailyRewardsGui.ScrollType scrollType;
-    private GuiFormat guiFormat;
+    private Gui.Builder gui;
     private @ApiStatus.Internal Integer requiredPlaytime; // TODO: Properly implement conditions
 
     public DailyRewardsModule(String id, ConfigurationSection config) {
@@ -57,14 +56,19 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
         setShouldNotify(config.getBoolean("enable-notifications", true));
         this.upcomingCategory = config.getString("upcoming-category");
 
-        String guiTitle = config.getString("gui.title", "&8&lDaily Rewards");
-        this.dateAsAmount = config.getBoolean("gui.date-as-amount", false);
         this.rewardPlaceholderClaimed = config.getString("reward-placeholders.claimed", "true");
         this.rewardPlaceholderUnclaimed = config.getString("reward-placeholders.unclaimed", "false");
-        this.scrollType = DailyRewardsGui.ScrollType.valueOf(config.getString("gui.scroll-type", "MONTH").toUpperCase());
+
         String templateType = config.getString("gui.template", "DEFAULT").toUpperCase();
-        GuiFormat.GuiTemplate guiTemplate = templateType.equals("CUSTOM") ? new GuiFormat.GuiTemplate(config.getStringList("gui.format")) : GuiFormat.GuiTemplate.valueOf(templateType);
-        this.guiFormat = new GuiFormat(guiTitle, guiTemplate);
+        GuiLayer guiLayer = templateType.equals("CUSTOM") ? new GuiLayer(config.getStringList("gui.format")) : GuiTemplates.valueOf(templateType);
+        DailyRewardsGui.ScrollType scrollType = DailyRewardsGui.ScrollType.valueOf(config.getString("gui.scroll-type", "MONTH").toUpperCase());
+        boolean showDateAsAmount = config.getBoolean("gui.date-as-amount", false);
+        this.gui = LushRewards.getInstance().getGuiHandler().prepare(new DailyRewardsGui(this, scrollType, showDateAsAmount))
+            .title(config.getString("gui.title", "&8&lDaily Rewards"))
+            .size(guiLayer.getSize())
+            .locked(true)
+            .applyLayer(guiLayer);
+
         this.requiredPlaytime = config.contains("required-playtime") ? config.getInt("required-playtime") : null;
 
         ConfigurationSection itemTemplatesSection = config.getConfigurationSection("gui.item-templates");
@@ -91,7 +95,7 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
                     switch (scrollType) {
                         case DAY -> {
                             lowestDate = LocalDate.now();
-                            highestDate = today.plusDays(guiTemplate.countChar('R') - 1);
+                            highestDate = today.plusDays(guiLayer.getCharCount('R') - 1);
                         }
                         case MONTH -> {
                             lowestDate = LocalDate.of(today.getYear(), today.getMonthValue(), 1);
@@ -99,7 +103,7 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
                         }
                         // Uses GRID mode by default as this has the largest range of possible dates
                         default -> {
-                            int rewardDisplayCount = guiTemplate.countChar('R');
+                            int rewardDisplayCount = guiLayer.getCharCount('R');
 
                             lowestDate = today.minusDays(rewardDisplayCount - 1);
                             highestDate = today.plusDays(rewardDisplayCount - 1);
@@ -137,7 +141,7 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
 
     @Override
     public boolean hasClaimableRewards(Player player, RewardUser user) {
-        DailyRewardsUserData userData = user.getModuleData(this.id, DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(this.id, DailyRewardsUserData.class);
         return userData.hasCollectedToday() && meetsRequiredPlaytime(player);
     }
 
@@ -148,7 +152,7 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
             return false;
         }
 
-        DailyRewardsUserData userData = user.getModuleData(this.id, DailyRewardsUserData.class);
+        DailyRewardsUserData userData = user.getCachedModuleData(this.id, DailyRewardsUserData.class);
         if (userData == null) {
             ChatColorHandler.sendMessage(player, "&#ff6969Failed to collect your rewards data, try relogging. If this continues inform an administrator");
             LushRewards.getInstance().getLogger().warning("Failed to collect '%s' module user data for '%s'".formatted(this.id, player.getName()));
@@ -329,10 +333,6 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
         return upcomingCategory;
     }
 
-    public boolean showDateAsAmount() {
-        return dateAsAmount;
-    }
-
     public String getRewardPlaceholderClaimed() {
         return rewardPlaceholderClaimed;
     }
@@ -341,17 +341,9 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
         return rewardPlaceholderUnclaimed;
     }
 
-    public DailyRewardsGui.ScrollType getScrollType() {
-        return scrollType;
-    }
-
-    public GuiFormat getGuiFormat() {
-        return guiFormat;
-    }
-
     @Override
-    public Gui getGui(Player player) {
-        return new DailyRewardsGui(this, player);
+    public Gui.Builder getGui() {
+        return gui;
     }
 
     public enum RewardMode {

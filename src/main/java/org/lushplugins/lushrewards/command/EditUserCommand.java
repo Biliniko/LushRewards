@@ -4,8 +4,6 @@ import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsUserData;
 import org.lushplugins.lushrewards.reward.module.playtimerewards.PlaytimeRewardsUserData;
 import org.lushplugins.lushrewards.user.RewardUser;
-import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsModule;
-import org.lushplugins.lushrewards.reward.module.playtimerewards.PlaytimeRewardsModule;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -19,7 +17,7 @@ public class EditUserCommand {
     @Subcommand("playtime set")
     @CommandPermission("lushrewards.edituser.playtime.set")
     public void setPlaytime(RewardUser user, int playtime) {
-        for (PlaytimeRewardsUserData userData : user.getAllModuleUserData(PlaytimeRewardsUserData.class)) {
+        for (PlaytimeRewardsUserData userData : user.getAllCachedModuleData(PlaytimeRewardsUserData.class)) {
             if (userData.getLastCollectedPlaytime() > playtime) {
                 userData.setLastCollectedPlaytime(playtime);
             }

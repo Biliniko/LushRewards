@@ -29,7 +29,7 @@ public class PlaytimeTracker {
     private int idleTime = 0;
 
     public PlaytimeTracker(Player player) {
-        RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+        RewardUser rewardUser = LushRewards.getInstance().getUserCache().getCachedUser(player.getUniqueId());
         if (rewardUser == null) {
             throw new IllegalStateException("Failed to find reward user for user: " + player.getName() + "(" + player.getUniqueId() + ")");
         }
@@ -111,11 +111,6 @@ public class PlaytimeTracker {
         return true;
     }
 
-    // TODO: Remove?
-    public void saveData() {
-        LushRewards.getInstance().getDataManager().getOrLoadRewardUser(player.getUniqueId(), false).thenAccept(rewardUser -> rewardUser.setMinutesPlayed(globalTime));
-    }
-
     private void incrementSessionTime() {
         sessionTime++;
 
@@ -128,21 +123,22 @@ public class PlaytimeTracker {
         globalTime++;
 
         if (player.hasPermission("lushrewards.use")) {
+            RewardUser user = LushRewards.getInstance().getUserCache().getCachedUser(player.getUniqueId());
             for (PlaytimeRewardsModule module : LushRewards.getInstance().getRewardModuleManager().getModules(PlaytimeRewardsModule.class)) {
                 if (!player.hasPermission("lushrewards.use." + module.getId())) {
                     continue;
                 }
 
                 if (module.getRefreshTime() > 0 && globalTime % module.getRefreshTime() == 0) {
-                    module.claimRewards(player);
+                    module.claimRewards(player, user);
                 }
             }
         }
 
         if (globalTime % 5 == 0) {
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
-            if (rewardUser != null) {
-                rewardUser.setMinutesPlayed(globalTime);
+            RewardUser user = LushRewards.getInstance().getUserCache().getCachedUser(player.getUniqueId());
+            if (user != null) {
+                user.setMinutesPlayed(globalTime);
             } else {
                 LushRewards.getInstance().getPlaytimeTrackerManager().ifEnabled(playtimeTrackerManager -> {
                     playtimeTrackerManager.stopPlaytimeTracker(player.getUniqueId());

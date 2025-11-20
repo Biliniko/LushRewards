@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class RewardUser {
     private final UUID uuid;
@@ -40,7 +41,7 @@ public class RewardUser {
     public void setUsername(String username) {
         this.username = username;
 
-        LushRewards.getInstance().getDataManager().saveRewardUser(this);
+        LushRewards.getInstance().getStorageManager().saveRewardUser(this);
     }
 
     public int getMinutesPlayed() {
@@ -52,35 +53,37 @@ public class RewardUser {
 
         this.minutesPlayed = minutesPlayed;
 
-        LushRewards.getInstance().getDataManager().saveRewardUser(this);
+        LushRewards.getInstance().getStorageManager().saveRewardUser(this);
     }
 
-    public Collection<ModuleUserData> getAllModuleUserData() {
+    public ModuleUserData getCachedModuleData(String moduleId) {
+        return moduleData.get(moduleId);
+    }
+
+    public <T extends ModuleUserData> T getCachedModuleData(String moduleId, Class<T> userDataType) {
+        ModuleUserData userData = moduleData.get(moduleId);
+        return userDataType.isInstance(userData) ? userDataType.cast(userData) : null;
+    }
+
+    public <T extends ModuleUserData> CompletableFuture<T> getModuleData(String moduleId, Class<T> userDataType) {
+        return LushRewards.getInstance().getStorageManager().loadModuleUserData(uuid, moduleId, userDataType).thenApply(userData -> {
+            moduleData.put(moduleId, userData);
+            return userData;
+        });
+    }
+
+    public Collection<ModuleUserData> getAllCachedModuleData() {
         return moduleData.values();
     }
 
-    public <T extends ModuleUserData> Collection<T> getAllModuleUserData(Class<T> moduleType) {
+    public <T extends ModuleUserData> Collection<T> getAllCachedModuleData(Class<T> moduleType) {
         return moduleData.values().stream()
             .filter(moduleType::isInstance)
             .map(moduleType::cast)
             .toList();
     }
 
-    public ModuleUserData getModuleData(String moduleId) {
-        return moduleData.get(moduleId);
-    }
-
-    public <T extends ModuleUserData> T getModuleData(String moduleId, Class<T> moduleType) {
-        ModuleUserData userData = moduleData.get(moduleId);
-        return moduleType.isInstance(userData) ? moduleType.cast(userData) : null;
-    }
-
-    // TODO: Remove all below methods when possible
-    @ApiStatus.Internal
-    public void addModuleData(String moduleId, ModuleUserData userData) {
-        moduleData.put(moduleId, userData);
-    }
-
+    // TODO: Remove all below method when possible
     @ApiStatus.Internal
     public JsonObject asJson() {
         return LushRewards.GSON.toJsonTree(this).getAsJsonObject();

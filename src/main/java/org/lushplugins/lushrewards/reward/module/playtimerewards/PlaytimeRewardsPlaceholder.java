@@ -91,7 +91,7 @@ public class PlaytimeRewardsPlaceholder {
                 return null;
             }
 
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            RewardUser rewardUser = LushRewards.getInstance().getUserCache().getCachedUser(player);
             if (rewardUser == null) {
                 return null;
             }

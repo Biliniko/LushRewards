@@ -6,8 +6,7 @@ import org.lushplugins.lushlib.libraries.chatcolor.ChatColorHandler;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.gui.GuiDisplayer;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushrewards.reward.module.OldUserDataModule;
-import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsGui;
+import org.lushplugins.lushrewards.reward.module.StoresUserData;
 import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsModule;
 import org.lushplugins.lushrewards.migrator.Migrator;
 import org.lushplugins.lushrewards.user.RewardUser;
@@ -34,11 +33,12 @@ public class RewardsCommand {
         LushRewards.getInstance().getConfigManager().checkRefresh();
 
         Player player = actor.requirePlayer();
+        // TODO: Add configurable rewards module for main rewards command
         LushRewards.getInstance().getRewardModuleManager().getModules().stream()
             .filter(module -> module instanceof DailyRewardsModule && player.hasPermission("lushrewards.use." + module.getId()))
             .findFirst()
             .ifPresentOrElse(
-                module -> new DailyRewardsGui((DailyRewardsModule) module, player).open(),
+                module -> ((DailyRewardsModule) module).getGui().open(player),
                 () -> ChatColorHandler.sendMessage(player, "&#ff6969The daily rewards module is disabled or you don't have permission")
             );
     }
@@ -91,13 +91,14 @@ public class RewardsCommand {
         }
 
         if (module.hasClaimableRewards(player)) {
-            if (module instanceof OldUserDataModule<?> userDataModule) {
-                userDataModule.getOrLoadUserData(player.getUniqueId(), true).thenAccept(userData -> module.claimRewards(player, user));
-                return true;
+            StoresUserData userDataAnnotation = module.getClass().getAnnotation(StoresUserData.class);
+            if (userDataAnnotation != null) {
+                user.getModuleData(module.getId(), userDataAnnotation.value()).thenAccept(userData -> module.claimRewards(player, user));
             } else {
                 module.claimRewards(player, user);
-                return true;
             }
+
+            return true;
         } else {
             return false;
         }

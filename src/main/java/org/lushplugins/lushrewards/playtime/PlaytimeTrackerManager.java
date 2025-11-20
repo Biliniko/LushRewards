@@ -2,6 +2,7 @@ package org.lushplugins.lushrewards.playtime;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.rewardsapi.api.RewardsAPI;
 import space.arim.morepaperlib.scheduling.ScheduledTask;
 
@@ -60,7 +61,12 @@ public class PlaytimeTrackerManager {
         }
 
         if (playtimeTrackers != null) {
-            playtimeTrackers.values().forEach(PlaytimeTracker::saveData);
+            for (PlaytimeTracker playtimeTracker : playtimeTrackers.values()) {
+                LushRewards.getInstance().getUserCache().getUser(playtimeTracker.getPlayer().getUniqueId(), false).thenAccept(user -> {
+                    user.setMinutesPlayed(playtimeTracker.getGlobalPlaytime());
+                });
+            }
+
             playtimeTrackers.clear();
             playtimeTrackers = null;
         }
