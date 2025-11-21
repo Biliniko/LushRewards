@@ -31,7 +31,6 @@ import org.lushplugins.lushrewards.utils.placeholder.LocalPlaceholders;
 import org.lushplugins.lushrewards.utils.gson.LocalDateTypeAdapter;
 import org.lushplugins.lushrewards.utils.gson.UserDataExclusionStrategy;
 import org.lushplugins.lushrewards.config.ConfigManager;
-import org.lushplugins.lushrewards.user.DataManager;
 import org.lushplugins.lushlib.LushLib;
 import org.lushplugins.lushlib.plugin.SpigotPlugin;
 import org.lushplugins.lushrewards.utils.placeholderhandler.RewardModuleParameterProvider;
@@ -62,7 +61,6 @@ public final class LushRewards extends SpigotPlugin {
     private Updater updater;
     private ConfigManager configManager;
     private RewardModuleManager rewardModuleManager;
-    private DataManager dataManager; // TODO: Remove
     private PlaytimeTrackerManager playtimeTrackerManager;
     private NotificationHandler notificationHandler;
     private LocalPlaceholders localPlaceholders;
@@ -101,9 +99,6 @@ public final class LushRewards extends SpigotPlugin {
 
         this.userCache = new UserCache(this);
         this.storageManager = new StorageManager();
-
-        this.dataManager = new DataManager();
-        this.dataManager.enable();
 
         this.updater = new Updater.Builder(this)
             .modrinth("djC8I9ui", true)
@@ -173,11 +168,6 @@ public final class LushRewards extends SpigotPlugin {
             modules = null;
         }
 
-        if (dataManager != null) {
-            dataManager.disable();
-            dataManager = null;
-        }
-
         configManager = null;
         localPlaceholders = null;
 
@@ -190,10 +180,6 @@ public final class LushRewards extends SpigotPlugin {
 
     public RewardModuleManager getRewardModuleManager() {
         return rewardModuleManager;
-    }
-
-    public DataManager getDataManager() {
-        return dataManager;
     }
 
     public PlaytimeTrackerManager getPlaytimeTrackerManager() {

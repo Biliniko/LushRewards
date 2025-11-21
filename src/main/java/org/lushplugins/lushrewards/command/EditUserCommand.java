@@ -10,7 +10,7 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.time.LocalDate;
 
-//@SuppressWarnings("unused")
+@SuppressWarnings("unused")
 @Command("rewards edit-user <player>")
 public class EditUserCommand {
 

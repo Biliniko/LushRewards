@@ -22,7 +22,7 @@ public class PlaytimeRewardsPlaceholder {
                 return null;
             }
 
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            RewardUser rewardUser = LushRewards.getInstance().getUserCache().getCachedUser(player.getUniqueId());
             if (rewardUser == null) {
                 return null;
             }
@@ -46,7 +46,7 @@ public class PlaytimeRewardsPlaceholder {
                 return null;
             }
 
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            RewardUser rewardUser = LushRewards.getInstance().getUserCache().getCachedUser(player.getUniqueId());
             if (rewardUser == null) {
                 return null;
             }
