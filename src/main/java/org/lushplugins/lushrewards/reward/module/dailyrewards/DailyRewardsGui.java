@@ -42,7 +42,7 @@ public record DailyRewardsGui(DailyRewardsModule module, ScrollType scrollType, 
         int currDayNum = userData.getDayNum();
 
         // Collect first reward day and date shown
-        GuiStartIndex startIndex = new GuiStartIndex(module, userData, slots.size());
+        GuiStartIndex startIndex = new GuiStartIndex(userData, slots.size());
 
         HashSet<Integer> collectedDays = userData.getCollectedDays();
         for (Slot slot : slots) {
@@ -172,7 +172,7 @@ public record DailyRewardsGui(DailyRewardsModule module, ScrollType scrollType, 
         }
 
         DailyRewardsUserData userData = user.getCachedModuleData(module.getId(), DailyRewardsUserData.class);
-        GuiStartIndex startIndex = new GuiStartIndex(module, userData, rewardSlots.size());
+        GuiStartIndex startIndex = new GuiStartIndex(userData, rewardSlots.size());
 
         String upcomingCategory = module.getUpcomingCategory();
         Optional<DailyRewardCollection> upcomingReward = module.findNextRewardFromCategory(startIndex.day(), startIndex.date(), upcomingCategory);
@@ -209,7 +209,7 @@ public record DailyRewardsGui(DailyRewardsModule module, ScrollType scrollType, 
         return categoryItemBuilder.build().asItemStack(actor.player());
     }
 
-    private static class GuiStartIndex {
+    private class GuiStartIndex {
         private int dayIndex;
         private LocalDate dateIndex;
 
@@ -218,10 +218,10 @@ public record DailyRewardsGui(DailyRewardsModule module, ScrollType scrollType, 
             this.dateIndex = dateIndex;
         }
 
-        public GuiStartIndex(DailyRewardsModule module, DailyRewardsUserData userData, int rewardDisplaySize) {
+        public GuiStartIndex(DailyRewardsUserData userData, int rewardDisplaySize) {
             int currDayNum = userData.getDayNum();
 
-            switch (module.getScrollType()) {
+            switch (scrollType) {
                 case GRID -> {
                     int endDay = rewardDisplaySize;
                     if (rewardDisplaySize >= 1) {
