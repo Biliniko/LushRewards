@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.storage.Storage;
-import org.lushplugins.lushrewards.user.ModuleUserData;
 
 import java.io.*;
 import java.util.UUID;
@@ -22,14 +21,9 @@ public class JsonStorage implements Storage {
     }
 
     @Override
-    public void saveModuleUserData(ModuleUserData userData) {
-        if (!storageDir.exists()) {
-            storageDir.mkdir();
-        }
+    public void saveModuleUserDataJson(UUID uuid, String moduleId, JsonObject moduleJson) {
+        assertStorageDir();
 
-        UUID uuid = userData.getUniqueId();
-        String moduleId = userData.getModuleId();
-        JsonObject moduleJson = userData.asJson();
         if (moduleJson == null) {
             throw new NullPointerException("JsonObject cannot be null when saving");
         }
@@ -45,10 +39,14 @@ public class JsonStorage implements Storage {
         }
     }
 
-    private JsonObject loadFile(UUID uuid) {
+    private void assertStorageDir() {
         if (!storageDir.exists()) {
             storageDir.mkdir();
         }
+    }
+
+    private JsonObject loadFile(UUID uuid) {
+        assertStorageDir();
 
         try {
             JsonElement json = JsonParser.parseReader(new FileReader(getUserFile(uuid)));
