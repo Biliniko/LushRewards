@@ -1,12 +1,16 @@
-name: Build plugin
-
+name: Run PR Tests
+permissions:
+  contents: read
+  pull-requests: write
 on:
   pull_request:
     types:
+      - opened
       - synchronize
+      - reopened
 
 jobs:
-  build-plugin:
+  build-project:
     runs-on: ubuntu-latest
 
     steps:
