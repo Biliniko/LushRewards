@@ -1,7 +1,5 @@
 package org.lushplugins.lushrewards.user;
 
-import com.google.gson.JsonObject;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.api.event.RewardUserPlaytimeChangeEvent;
@@ -24,6 +22,10 @@ public class RewardUser {
         this.username = username;
         this.minutesPlayed = minutesPlayed;
         this.moduleData = moduleData;
+    }
+
+    public RewardUser(UUID uuid, @Nullable String username, int minutesPlayed) {
+        this(uuid, username, minutesPlayed, new HashMap<>());
     }
 
     public RewardUser(UUID uuid, @Nullable String username) {
@@ -72,6 +74,10 @@ public class RewardUser {
         });
     }
 
+    public void cacheModuleData(ModuleUserData userData) {
+        moduleData.put(userData.getModuleId(), userData);
+    }
+
     public Collection<ModuleUserData> getAllCachedModuleData() {
         return moduleData.values();
     }
@@ -81,11 +87,5 @@ public class RewardUser {
             .filter(moduleType::isInstance)
             .map(moduleType::cast)
             .toList();
-    }
-
-    // TODO: Remove all below method when possible
-    @ApiStatus.Internal
-    public JsonObject asJson() {
-        return LushRewards.GSON.toJsonTree(this).getAsJsonObject();
     }
 }

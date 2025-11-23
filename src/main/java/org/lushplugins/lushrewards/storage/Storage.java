@@ -1,10 +1,12 @@
 package org.lushplugins.lushrewards.storage;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lushplugins.lushrewards.LushRewards;
+import org.lushplugins.lushrewards.reward.module.RewardModule;
+import org.lushplugins.lushrewards.reward.module.StoresUserData;
 import org.lushplugins.lushrewards.reward.module.playtimerewards.PlaytimeRewardsModule;
 import org.lushplugins.lushrewards.reward.module.playtimerewards.PlaytimeRewardsUserData;
 import org.lushplugins.lushrewards.user.ModuleUserData;
@@ -13,24 +15,22 @@ import org.lushplugins.lushrewards.utils.Debugger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
 
+// Columns in user table should be: uuid, username, minutesPlayed
+// Module data should continue to be stored as json in the modules table
 public interface Storage {
-    // TODO: Remove when possible
-    JsonElement EMPTY_MAP_ELEMENT = LushRewards.GSON.toJsonTree(new HashMap<>());
 
     default void enable(ConfigurationSection config) {}
 
     default void disable() {}
 
-    // TODO: RewardUser (not ModuleUserData) should not be stored as a json object
-    // Columns in user table should be: uuid, username, minutesPlayed
-    // Module data should continue to be stored as json in the modules table
+    @Nullable RewardUser prepareRewardUser(UUID uuid);
+
     default RewardUser loadRewardUser(UUID uuid) {
-        JsonObject json = loadModuleUserDataJson(uuid, null);
-        if (json == null) {
+        RewardUser user = prepareRewardUser(uuid);
+        if (user == null) {
             Debugger.sendDebugMessage("No storage data found for '%s' for reward user, creating default data!"
                 .formatted(uuid), Debugger.DebugMode.ALL);
 
@@ -38,28 +38,24 @@ public interface Storage {
         }
 
         try {
-            json.addProperty("uuid", uuid.toString());
-            // TODO: Load module data for active modules
-            json.add("moduleData", EMPTY_MAP_ELEMENT);
+            for (RewardModule module : LushRewards.getInstance().getRewardModuleManager().getModules()) {
+                StoresUserData userDataAnnotation = module.getClass().getAnnotation(StoresUserData.class);
+                if (userDataAnnotation != null) {
+                    ModuleUserData userData = loadModuleUserData(uuid, module.getId(), userDataAnnotation.value());
+                    user.cacheModuleData(userData);
+                }
+            }
 
-            return LushRewards.GSON.fromJson(json, RewardUser.class);
+            return user;
         } catch (Throwable e) {
             LushRewards.getInstance().log(Level.WARNING, "Caught error when parsing user data:", e);
             return null;
         }
     }
 
-    default void saveRewardUser(RewardUser user) {
-        UUID uuid = user.getUniqueId();
-        JsonObject json = user.asJson();
-        if (json == null) {
-            throw new NullPointerException("JsonObject cannot be null when saving");
-        }
+    void saveRewardUser(RewardUser user);
 
-        saveModuleUserDataJson(uuid, null, json);
-    }
-
-    JsonObject loadModuleUserDataJson(UUID uuid, String moduleId);
+    JsonObject loadModuleUserDataJson(UUID uuid, @NotNull String moduleId);
 
     default <T extends ModuleUserData> T loadModuleUserData(UUID uuid, @NotNull String moduleId, Class<T> userDataType) {
         JsonObject json = loadModuleUserDataJson(uuid, moduleId);
@@ -84,6 +80,7 @@ public interface Storage {
                 return null;
             }
 
+            // TODO: Migrate somewhere in PlaytimeRewardsUserData (or module)?
             if (userData instanceof PlaytimeRewardsUserData playtimeUserData) {
                 PlaytimeRewardsModule module = LushRewards.getInstance().getRewardModuleManager().getModule(moduleId, PlaytimeRewardsModule.class);
                 if (module != null) {
@@ -114,6 +111,15 @@ public interface Storage {
         }
 
         this.saveModuleUserDataJson(uuid, moduleId, json);
+    }
+
+    // TODO: Add to StorageManager
+    /**
+     * Save a RewardUser and all cached module user data
+     */
+    default void saveEntireRewardUser(RewardUser user) {
+        saveRewardUser(user);
+        user.getAllCachedModuleData().forEach(this::saveModuleUserData);
     }
 
     // TODO: Implement with new RewardUser storage structure

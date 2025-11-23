@@ -3,8 +3,11 @@ package org.lushplugins.lushrewards.storage.type;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.storage.Storage;
+import org.lushplugins.lushrewards.user.RewardUser;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -27,7 +30,19 @@ public abstract class AbstractSQLStorage implements Storage {
     }
 
     @Override
-    public JsonObject loadModuleUserDataJson(UUID uuid, String moduleId) {
+    public @Nullable RewardUser prepareRewardUser(UUID uuid) {
+        // TODO: Migrate user table to store RewardUser data in separate columns
+        return null;
+    }
+
+    @Override
+    public void saveRewardUser(RewardUser user) {
+        // TODO: Migrate user table to store RewardUser data in separate columns
+    }
+
+    @Override
+    public JsonObject loadModuleUserDataJson(UUID uuid, @NotNull String moduleId) {
+        // TODO: Move RewardUser data code to prepareRewardUser
         String table = moduleId != null ? USER_MODULES_TABLE : USER_TABLE;
         String column = formatHeader(moduleId != null ? moduleId + "_data" : "data");
 
