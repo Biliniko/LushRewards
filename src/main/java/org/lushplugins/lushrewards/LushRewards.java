@@ -14,7 +14,7 @@ import org.lushplugins.lushlib.serializer.JacksonHelper;
 import org.lushplugins.lushrewards.command.RewardsCommand;
 import org.lushplugins.lushrewards.reward.module.RewardModuleManager;
 import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsModule;
-import org.lushplugins.lushrewards.placeholder.DailyRewardsPlaceholders;
+import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsPlaceholders;
 import org.lushplugins.lushrewards.placeholder.Placeholders;
 import org.lushplugins.lushrewards.storage.StorageManager;
 import org.lushplugins.lushrewards.user.RewardUser;

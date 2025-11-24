@@ -1,8 +1,5 @@
-package org.lushplugins.lushrewards.placeholder;
+package org.lushplugins.lushrewards.reward.module.dailyrewards;
 
-import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardCollection;
-import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsModule;
-import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsUserData;
 import org.lushplugins.lushrewards.reward.RewardDay;
 import org.lushplugins.lushrewards.user.RewardUser;
 import org.lushplugins.placeholderhandler.annotation.Placeholder;
