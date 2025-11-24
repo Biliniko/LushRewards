@@ -30,6 +30,7 @@ public abstract class AbstractSQLStorage implements Storage {
     public void enable(ConfigurationSection config) {
         this.dataSource = setupDataSource(config);
         testDataSourceConnection();
+        assertRewardUserTable();
     }
 
     @Override
@@ -151,6 +152,24 @@ public abstract class AbstractSQLStorage implements Storage {
         return null;
     }
 
+    protected void assertRewardUserTable() {
+        try (Connection conn = conn();
+             PreparedStatement stmt = conn.prepareStatement(String.format("""
+                 CREATE TABLE IF NOT EXISTS %s (
+                     uuid CHAR(36) NOT NULL,
+                     username TEXT NOT NULL,
+                     minutesPlayed INTEGER NOT NULL,
+                     PRIMARY KEY (uuid)
+                 );
+                 """, USER_TABLE))
+        ) {
+            stmt.execute();
+        } catch (SQLException e) {
+            LushRewards.getInstance().getLogger().log(Level.SEVERE, "Failed to assert table: ", e);
+        }
+    }
+
+    // TODO: Migrate assertion to run once on reload
     protected void assertTable(String table) {
         try (Connection conn = conn();
              PreparedStatement stmt = conn.prepareStatement(
