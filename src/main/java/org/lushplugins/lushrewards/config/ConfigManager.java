@@ -31,6 +31,7 @@ public class ConfigManager {
     private boolean playtimeIgnoreAfk;
     private int reminderPeriod;
     private Sound reminderSound;
+    private String defaultRewardGui;
     private boolean enableUpdater;
 
     public ConfigManager() {
@@ -55,6 +56,7 @@ public class ConfigManager {
         playtimeIgnoreAfk = config.getBoolean("playtime-ignore-afk", true);
         reminderPeriod = config.getInt("reminder-period", 1800) * 20;
         reminderSound = StringUtils.getEnum(config.getString("reminder-sound", "none"), Sound.class).orElse(null);
+        defaultRewardGui = config.getString("default-reward-gui", "daily-rewards");
 
         enableUpdater = config.getBoolean("enable-updater", true);
 
@@ -135,6 +137,10 @@ public class ConfigManager {
 
     public Sound getReminderSound() {
         return reminderSound;
+    }
+
+    public String getDefaultRewardGui() {
+        return defaultRewardGui;
     }
 
     public boolean isUpdaterEnabled() {

@@ -7,7 +7,6 @@ import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.gui.GuiDisplayer;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
 import org.lushplugins.lushrewards.reward.module.StoresUserData;
-import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsModule;
 import org.lushplugins.lushrewards.migrator.Migrator;
 import org.lushplugins.lushrewards.user.RewardUser;
 import org.lushplugins.pluginupdater.api.updater.Updater;
@@ -34,14 +33,14 @@ public class RewardsCommand {
         LushRewards.getInstance().getConfigManager().checkRefresh();
 
         Player player = actor.requirePlayer();
-        // TODO: Add configurable rewards module for main rewards command
-        LushRewards.getInstance().getRewardModuleManager().getModules().stream()
-            .filter(module -> module instanceof DailyRewardsModule && player.hasPermission("lushrewards.use." + module.getId()))
-            .findFirst()
-            .ifPresentOrElse(
-                module -> ((DailyRewardsModule) module).getGui().open(player),
-                () -> ChatColorHandler.sendMessage(player, "&#ff6969The daily rewards module is disabled or you don't have permission")
-            );
+        String defaultRewardGui = LushRewards.getInstance().getConfigManager().getDefaultRewardGui();
+        RewardModule module = LushRewards.getInstance().getRewardModuleManager().getModule(defaultRewardGui);
+        if (module instanceof GuiDisplayer displayer && player.hasPermission("lushrewards.use.%s" .formatted(module.getId()))) {
+            displayer.displayGui(player);
+        } else {
+            ChatColorHandler.sendMessage(player, "&#ff6969The '%s' module is disabled, doesn't have a gui or you don't have permission"
+                .formatted(defaultRewardGui));
+        }
     }
 
     @Subcommand("about")
