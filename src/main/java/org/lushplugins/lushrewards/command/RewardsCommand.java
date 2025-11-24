@@ -17,7 +17,8 @@ import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
-import revxrsal.commands.exception.CommandErrorException;
+import revxrsal.commands.exception.NoPermissionException;
+import revxrsal.commands.node.ExecutionContext;
 
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -106,11 +107,10 @@ public class RewardsCommand {
 
     @Subcommand("gui")
     @CommandPermission("lushrewards.use")
-    public void gui(BukkitCommandActor actor, RewardModule module) {
-        Player player = actor.requirePlayer();
+    public void gui(ExecutionContext<BukkitCommandActor> context, RewardModule module) {
+        Player player = context.actor().requirePlayer();
         if (!player.hasPermission("lushrewards.use." + module.getId())) {
-            // TODO: Work out how to handle this properly - does Lamp have an implementation?
-            throw new CommandErrorException("You do not have the required permission for this command");
+            throw new NoPermissionException(context.command());
         }
 
         if (module instanceof GuiDisplayer guiDisplayer) {
