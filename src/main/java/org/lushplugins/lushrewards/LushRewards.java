@@ -29,7 +29,6 @@ import org.lushplugins.lushrewards.utils.lamp.parametertype.MigratorParameterTyp
 import org.lushplugins.lushrewards.utils.lamp.parametertype.RewardModuleParameterType;
 import org.lushplugins.lushrewards.utils.lamp.parametertype.RewardUserParameterType;
 import org.lushplugins.lushrewards.utils.lamp.response.StringMessageResponseHandler;
-import org.lushplugins.lushrewards.utils.placeholder.LocalPlaceholders;
 import org.lushplugins.lushrewards.utils.gson.LocalDateTypeAdapter;
 import org.lushplugins.lushrewards.utils.gson.UserDataExclusionStrategy;
 import org.lushplugins.lushrewards.config.ConfigManager;
@@ -65,7 +64,6 @@ public final class LushRewards extends SpigotPlugin {
     private RewardModuleManager rewardModuleManager;
     private PlaytimeTrackerManager playtimeTrackerManager;
     private NotificationHandler notificationHandler;
-    private LocalPlaceholders localPlaceholders;
     private UserCache userCache;
     private StorageManager storageManager;
 
@@ -91,7 +89,6 @@ public final class LushRewards extends SpigotPlugin {
 
         this.playtimeTrackerManager = new PlaytimeTrackerManager();
         this.notificationHandler = new NotificationHandler();
-        this.localPlaceholders = new LocalPlaceholders();
 
         this.configManager = new ConfigManager();
         this.configManager.reloadConfig();
@@ -174,7 +171,6 @@ public final class LushRewards extends SpigotPlugin {
         }
 
         configManager = null;
-        localPlaceholders = null;
 
         RewardsAPI.getMorePaperLib().scheduling().cancelGlobalTasks();
     }
@@ -193,10 +189,6 @@ public final class LushRewards extends SpigotPlugin {
 
     public NotificationHandler getNotificationHandler() {
         return notificationHandler;
-    }
-
-    public LocalPlaceholders getLocalPlaceholders() {
-        return localPlaceholders;
     }
 
     public GuiHandler getGuiHandler() {
