@@ -1,10 +1,12 @@
 package org.lushplugins.lushrewards.config;
 
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.lushplugins.lushlib.manager.GuiManager;
+import org.lushplugins.lushlib.registry.RegistryUtils;
 import org.lushplugins.lushlib.utils.*;
 import org.lushplugins.lushlib.utils.converter.YamlConverter;
 import org.lushplugins.lushrewards.LushRewards;
@@ -15,13 +17,11 @@ import org.lushplugins.rewardsapi.api.reward.Reward;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConfigManager {
     private static LocalDate currentDate;
 
-    private Map<String, RewardModule> modules;
     private final ConcurrentHashMap<String, DisplayItemStack> categoryItems = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, DisplayItemStack> globalItemTemplates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Reward> rewardTemplates = new ConcurrentHashMap<>();
@@ -55,7 +55,7 @@ public class ConfigManager {
 
         playtimeIgnoreAfk = config.getBoolean("playtime-ignore-afk", true);
         reminderPeriod = config.getInt("reminder-period", 1800) * 20;
-        reminderSound = StringUtils.getEnum(config.getString("reminder-sound", "none"), Sound.class).orElse(null);
+        reminderSound = RegistryUtils.parseString(config.getString("reminder-sound", "none"), Registry.SOUNDS);
         defaultRewardGui = config.getString("default-reward-gui", "daily-rewards");
 
         enableUpdater = config.getBoolean("enable-updater", true);

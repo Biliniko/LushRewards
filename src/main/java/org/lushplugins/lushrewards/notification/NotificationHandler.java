@@ -1,5 +1,6 @@
 package org.lushplugins.lushrewards.notification;
 
+import org.bukkit.Sound;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushlib.libraries.chatcolor.ChatColorHandler;
 import org.bukkit.Bukkit;
@@ -26,7 +27,11 @@ public class NotificationHandler {
         this.notificationTask = RewardsAPI.getMorePaperLib().scheduling().asyncScheduler().runAtFixedRate(() -> Bukkit.getOnlinePlayers().forEach(player -> {
             if (LushRewards.getInstance().getRewardModuleManager().getModules().stream().anyMatch(rewardModule -> rewardModule.shouldNotify() && rewardModule.hasClaimableRewards(player) && player.hasPermission("lushrewards.use." + rewardModule.getId()))) {
                 ChatColorHandler.sendMessage(player, LushRewards.getInstance().getConfigManager().getMessage("reminder"));
-                player.playSound(player.getLocation(), LushRewards.getInstance().getConfigManager().getReminderSound(), 1f, 1.5f);
+
+                Sound reminderSound = LushRewards.getInstance().getConfigManager().getReminderSound();
+                if (reminderSound != null) {
+                    player.playSound(player.getLocation(), reminderSound, 1f, 1.5f);
+                }
             }
         }), Duration.of(Math.round((double) reminderPeriodMs / 3), ChronoUnit.MILLIS), Duration.of(reminderPeriodMs, ChronoUnit.MILLIS));
     }

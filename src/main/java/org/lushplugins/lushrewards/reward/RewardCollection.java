@@ -1,11 +1,12 @@
 package org.lushplugins.lushrewards.reward;
 
+import org.bukkit.Registry;
+import org.lushplugins.lushlib.registry.RegistryUtils;
 import org.lushplugins.lushlib.utils.DisplayItemStack;
 import org.lushplugins.lushlib.utils.converter.MapConverter;
 import org.lushplugins.lushlib.utils.converter.YamlConverter;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.utils.Debugger;
-import org.lushplugins.lushlib.utils.StringUtils;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -88,7 +89,7 @@ public class RewardCollection {
         DisplayItemStack displayItem = itemSection != null ? YamlConverter.getDisplayItem(itemSection) : DisplayItemStack.empty();
         Debugger.sendDebugMessage("Reward collection item set to: " + displayItem, debugMode);
 
-        Sound redeemSound = StringUtils.getEnum(rewardCollectionSection.getString("redeem-sound", "ENTITY_EXPERIENCE_ORB_PICKUP"), Sound.class).orElse(null);
+        Sound redeemSound = RegistryUtils.parseString(rewardCollectionSection.getString("redeem-sound", "entity.experience_orb.pickup"), Registry.SOUNDS);
 
         Debugger.sendDebugMessage("Attempting to load rewards", debugMode);
         List<Map<?, ?>> rewardMaps = rewardCollectionSection.getMapList("rewards");
@@ -115,7 +116,7 @@ public class RewardCollection {
         DisplayItemStack itemStack = itemMap != null ? MapConverter.getDisplayItemBuilder(itemMap).build() : DisplayItemStack.empty();
         Debugger.sendDebugMessage("Reward collection item set to: " + itemStack, debugMode);
 
-        Sound redeemSound = rewardCollectionMap.containsKey("redeem-sound") ? StringUtils.getEnum((String) rewardCollectionMap.get("redeem-sound"), Sound.class).orElse(null) : Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
+        Sound redeemSound = rewardCollectionMap.containsKey("redeem-sound") ? RegistryUtils.parseString((String) rewardCollectionMap.get("redeem-sound"), Registry.SOUNDS) : Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
 
         Debugger.sendDebugMessage("Attempting to load rewards", debugMode);
         List<Map<?, ?>> rewardMaps = (List<Map<?, ?>>) rewardCollectionMap.get("rewards");

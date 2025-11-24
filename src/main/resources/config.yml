@@ -5,7 +5,7 @@ playtime-ignore-afk: true
 # The length in seconds between reminders being sent (Set to -1 to disable)
 reminder-period: 1800
 # The sound that will be played when a player is sent a reminder
-reminder-sound: block.note_block.pling # TODO: Test
+reminder-sound: block.note_block.pling
 # The reward module gui to open when running '/rewards'
 default-reward-gui: daily-rewards
 

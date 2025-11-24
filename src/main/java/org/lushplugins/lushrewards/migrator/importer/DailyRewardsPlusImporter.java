@@ -1,5 +1,7 @@
 package org.lushplugins.lushrewards.migrator.importer;
 
+import org.bukkit.Registry;
+import org.lushplugins.lushlib.registry.RegistryUtils;
 import org.lushplugins.lushlib.utils.DisplayItemStack;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardCollection;
@@ -99,7 +101,7 @@ public class DailyRewardsPlusImporter extends ConfigImporter {
                 String displayMaterialRaw = rewardSection.getString("RewardIcon");
                 DisplayItemStack.Builder displayItemBuilder;
                 if (displayMaterialRaw != null && !displayMaterialRaw.isBlank()) {
-                    displayItemBuilder = DisplayItemStack.builder(StringUtils.getEnum(displayMaterialRaw, Material.class).orElse(null));
+                    displayItemBuilder = DisplayItemStack.builder(RegistryUtils.parseString(displayMaterialRaw, Registry.MATERIAL));
                     if (rewardSection.getBoolean("Extras.Enchanted")) {
                         displayItemBuilder.setEnchantGlow(true);
                     }
@@ -149,7 +151,7 @@ public class DailyRewardsPlusImporter extends ConfigImporter {
             simpleItemStack.setSkullTexture("mirror");
         }
 
-        simpleItemStack.setType(StringUtils.getEnum(materialRaw, Material.class).orElse(null));
+        simpleItemStack.setType(materialRaw != null ? RegistryUtils.parseString(materialRaw, Registry.MATERIAL) : null);
 
         String displayName = configurationSection.getString("Title");
         if (displayName != null) {

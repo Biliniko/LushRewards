@@ -1,12 +1,13 @@
 package org.lushplugins.lushrewards.reward.module.dailyrewards;
 
+import org.bukkit.Registry;
+import org.lushplugins.lushlib.registry.RegistryUtils;
 import org.lushplugins.lushlib.utils.DisplayItemStack;
 import org.lushplugins.lushlib.utils.converter.YamlConverter;
 import org.lushplugins.lushrewards.exception.InvalidRewardException;
 
 import org.lushplugins.lushrewards.reward.RewardCollection;
 import org.lushplugins.lushrewards.utils.Debugger;
-import org.lushplugins.lushlib.utils.StringUtils;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -179,7 +180,7 @@ public class DailyRewardCollection extends RewardCollection {
         DisplayItemStack displayItem = itemSection != null ? YamlConverter.getDisplayItem(itemSection) : DisplayItemStack.empty();
         Debugger.sendDebugMessage("Reward collection item set to: " + displayItem, debugMode);
 
-        Sound redeemSound = StringUtils.getEnum(rewardCollectionSection.getString("redeem-sound", "none"), Sound.class).orElse(null);
+        Sound redeemSound = RegistryUtils.parseString(rewardCollectionSection.getString("redeem-sound", "none"), Registry.SOUNDS);
 
         Debugger.sendDebugMessage("Attempting to load rewards", debugMode);
         List<Map<?, ?>> rewardMaps = rewardCollectionSection.getMapList("rewards");

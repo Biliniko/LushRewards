@@ -1,8 +1,10 @@
 package org.lushplugins.lushrewards.reward.module.dailyrewards;
 
+import org.bukkit.Registry;
 import org.jetbrains.annotations.ApiStatus;
 import org.lushplugins.guihandler.gui.Gui;
 import org.lushplugins.guihandler.gui.GuiLayer;
+import org.lushplugins.lushlib.registry.RegistryUtils;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.reward.module.StoresUserData;
 import org.lushplugins.lushrewards.user.RewardUser;
@@ -53,7 +55,7 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
         this.allowRewardsStacking = config.getBoolean("allow-reward-stacking", true);
         this.streakBypass = config.getBoolean("streak-bypass");
 
-        this.defaultRedeemSound = StringUtils.getEnum(config.getString("default-redeem-sound", "none"), Sound.class).orElse(null);
+        this.defaultRedeemSound = RegistryUtils.parseString(config.getString("default-redeem-sound", "none"), Registry.SOUNDS);
         setShouldNotify(config.getBoolean("enable-notifications", true));
         this.upcomingCategory = config.getString("upcoming-category");
 
@@ -149,7 +151,7 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
     @Override
     public boolean hasClaimableRewards(Player player, RewardUser user) {
         DailyRewardsUserData userData = user.getCachedModuleData(this.id, DailyRewardsUserData.class);
-        return userData.hasCollectedToday() && meetsRequiredPlaytime(player);
+        return !userData.hasCollectedToday() && meetsRequiredPlaytime(player);
     }
 
     @Override

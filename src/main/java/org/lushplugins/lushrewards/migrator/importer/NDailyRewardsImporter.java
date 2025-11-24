@@ -1,8 +1,10 @@
 package org.lushplugins.lushrewards.migrator.importer;
 
 import org.bukkit.Material;
+import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.lushplugins.lushlib.registry.RegistryUtils;
 import org.lushplugins.lushlib.utils.DisplayItemStack;
 import org.lushplugins.lushlib.utils.SimpleItemStack;
 import org.lushplugins.lushlib.utils.StringUtils;
@@ -123,7 +125,7 @@ public class NDailyRewardsImporter extends ConfigImporter {
             simpleItemStack.setAmount(Integer.parseInt(itemDataRaw[2]));
         }
 
-        simpleItemStack.setType(StringUtils.getEnum(materialRaw, Material.class).orElse(null));
+        simpleItemStack.setType(RegistryUtils.parseString(materialRaw, Registry.MATERIAL));
         simpleItemStack.setDisplayName(configurationSection.getString("name"));
         simpleItemStack.setLore(configurationSection.getStringList("lore"));
 
