@@ -17,7 +17,7 @@ public class RewardUserParameterType implements ParameterType<BukkitCommandActor
 
     @Override
     public RewardUser parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> context) {
-        Player player = Bukkit.getPlayer(input.source());
+        Player player = Bukkit.getPlayer(input.readString());
         if (player == null) {
             throw new CommandErrorException("Could not find reward user data for user '%s'".formatted(input.source()));
         }

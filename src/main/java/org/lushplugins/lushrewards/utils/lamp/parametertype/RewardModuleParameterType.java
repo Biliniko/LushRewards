@@ -14,7 +14,7 @@ public class RewardModuleParameterType implements ParameterType<BukkitCommandAct
 
     @Override
     public RewardModule parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> context) {
-        return LushRewards.getInstance().getRewardModuleManager().getModule(input.source());
+        return LushRewards.getInstance().getRewardModuleManager().getModule(input.readString());
     }
 
     @Override

@@ -24,7 +24,7 @@ import org.lushplugins.lushrewards.reward.module.RewardModule;
 import org.lushplugins.lushrewards.playtime.PlaytimeTrackerManager;
 import org.lushplugins.lushrewards.notification.NotificationHandler;
 import org.lushplugins.lushrewards.user.UserCache;
-import org.lushplugins.lushrewards.utils.lamp.contextparameter.RewardUserContextParameter;
+import org.lushplugins.lushrewards.utils.lamp.parametertype.LocalDateParameterType;
 import org.lushplugins.lushrewards.utils.lamp.parametertype.MigratorParameterType;
 import org.lushplugins.lushrewards.utils.lamp.parametertype.RewardModuleParameterType;
 import org.lushplugins.lushrewards.utils.lamp.parametertype.RewardUserParameterType;
@@ -128,7 +128,8 @@ public final class LushRewards extends SpigotPlugin {
 
         this.lamp = BukkitLamp.builder(this)
             .parameterTypes(parameterTypes -> parameterTypes
-                .addContextParameter(RewardUser.class, new RewardUserContextParameter())
+//                .addContextParameter(RewardUser.class, new RewardUserContextParameter()) // TODO: Temporarily disabled
+                .addParameterType(LocalDate.class, new LocalDateParameterType())
                 .addParameterType(Migrator.class, new MigratorParameterType())
                 .addParameterType(RewardModule.class, new RewardModuleParameterType())
                 .addParameterType(RewardUser.class, new RewardUserParameterType()))
@@ -137,6 +138,8 @@ public final class LushRewards extends SpigotPlugin {
         this.lamp.register(new RewardsCommand());
 
         PlaceholderHandler placeholderHandler = PlaceholderHandler.builder(this)
+            .registerParameterProvider(String.class, (type, parameter, context) -> parameter)
+            .registerParameterProvider(int.class, (type, parameter, context) -> Integer.parseInt(parameter))
             .registerParameterProvider(RewardUser.class, (type, parameter, context) -> {
                 Player player = context.player();
                 return player != null ? this.getUserCache().getCachedUser(player.getUniqueId()) : null;

@@ -19,7 +19,7 @@ public class MigratorParameterType implements ParameterType<CommandActor, Migrat
 
     @Override
     public Migrator parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<CommandActor> context) {
-        String argument = input.source();
+        String argument = input.readString();
 
         try {
             return switch (argument.toLowerCase()) {
@@ -35,6 +35,6 @@ public class MigratorParameterType implements ParameterType<CommandActor, Migrat
 
     @Override
     public @NotNull SuggestionProvider<CommandActor> defaultSuggestions() {
-        return (context) -> List.of("DailyRewardsPlus", "NDailyRewards", "Version2to3");
+        return SuggestionProvider.of("DailyRewardsPlus", "NDailyRewards", "Version2to3");
     }
 }
