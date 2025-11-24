@@ -32,7 +32,6 @@ public abstract class AbstractSQLStorage implements Storage {
         testDataSourceConnection();
     }
 
-
     @Override
     public @Nullable RewardUser prepareRewardUser(UUID uuid) {
         try (Connection conn = conn();
