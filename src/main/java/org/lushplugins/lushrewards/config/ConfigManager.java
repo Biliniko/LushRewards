@@ -9,21 +9,16 @@ import org.lushplugins.lushlib.utils.*;
 import org.lushplugins.lushlib.utils.converter.YamlConverter;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.reward.module.RewardModule;
-import org.lushplugins.lushrewards.reward.module.RewardModuleTypes;
 import org.lushplugins.lushrewards.utils.Debugger;
 import org.lushplugins.rewardsapi.api.RewardsAPI;
 import org.lushplugins.rewardsapi.api.reward.Reward;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 public class ConfigManager {
-    private static final File MODULES_FOLDER = new File(LushRewards.getInstance().getDataFolder(), "modules");
     private static LocalDate currentDate;
 
     private Map<String, RewardModule> modules;
@@ -60,41 +55,6 @@ public class ConfigManager {
         playtimeIgnoreAfk = config.getBoolean("playtime-ignore-afk", true);
         reminderPeriod = config.getInt("reminder-period", 1800) * 20;
         reminderSound = StringUtils.getEnum(config.getString("reminder-sound", "none"), Sound.class).orElse(null);
-
-        // TODO: Remove and migrate to RewardModuleManager (i think that's the right class but double check)
-        modules = new ConcurrentHashMap<>();
-        try {
-            Files.newDirectoryStream(MODULES_FOLDER.toPath(), "*.yml").forEach(entry -> {
-                File moduleFile = entry.toFile();
-                String moduleId = FilenameUtils.removeExtension(moduleFile.getName());
-                if (!config.getBoolean("modules." + moduleId, true)) {
-                    return;
-                }
-
-                YamlConfiguration moduleConfig = YamlConfiguration.loadConfiguration(moduleFile);
-                if (!moduleConfig.getBoolean("enabled", true)) {
-                    return;
-                }
-
-                String rewardModuleType;
-                if (moduleConfig.contains("type")) {
-                    rewardModuleType = moduleConfig.getString("type");
-                } else if (moduleId.contains("playtime")) {
-                    rewardModuleType = "playtime-rewards";
-                } else {
-                    rewardModuleType = moduleId;
-                }
-
-                if (rewardModuleType != null && RewardModuleTypes.contains(rewardModuleType)) {
-                    modules.put(moduleId, RewardModuleTypes.constructModuleType(rewardModuleType, moduleId, moduleConfig));
-                } else {
-                    plugin.getLogger().severe("Module with id '%s' failed to register due to invalid value at 'type'"
-                        .formatted(moduleId));
-                }
-            });
-        } catch (IOException e) {
-            plugin.log(Level.SEVERE, "Something went wrong whilst reading modules files", e);
-        }
 
         enableUpdater = config.getBoolean("enable-updater", true);
 
