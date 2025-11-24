@@ -14,6 +14,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -29,27 +32,60 @@ public abstract class AbstractSQLStorage implements Storage {
         testDataSourceConnection();
     }
 
+
     @Override
     public @Nullable RewardUser prepareRewardUser(UUID uuid) {
-        // TODO: Migrate user table to store RewardUser data in separate columns
+        try (Connection conn = conn();
+             PreparedStatement stmt = conn.prepareStatement(String.format("""
+                 SELECT *
+                 FROM %s
+                 WHERE uuid = ?;
+                 """, USER_TABLE))
+        ) {
+            setUUIDToStatement(stmt, 1, uuid);
+
+            ResultSet results = stmt.executeQuery();
+            return new RewardUser(
+                uuid,
+                results.getString("username"),
+                results.getInt("minutesPlayed")
+            );
+        } catch (SQLException e) {
+            LushRewards.getInstance().getLogger().log(Level.SEVERE, "Failed to load user data: ", e);
+        }
+
         return null;
     }
 
+    protected abstract String getInsertOrUpdateRewardUserStatement();
+
     @Override
     public void saveRewardUser(RewardUser user) {
-        // TODO: Migrate user table to store RewardUser data in separate columns
+        try (Connection conn = conn();
+             PreparedStatement stmt = conn.prepareStatement(getInsertOrUpdateRewardUserStatement())
+        ) {
+            setUUIDToStatement(stmt, 1, user.getUniqueId());
+            stmt.setString(2, user.getUsername());
+            stmt.setInt(3, user.getMinutesPlayed());
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            LushRewards.getInstance().getLogger().log(Level.SEVERE, "Failed to save user data: ", e);
+        }
     }
 
     @Override
     public JsonObject loadModuleUserDataJson(UUID uuid, @NotNull String moduleId) {
-        // TODO: Move RewardUser data code to prepareRewardUser
-        String table = moduleId != null ? USER_MODULES_TABLE : USER_TABLE;
-        String column = formatHeader(moduleId != null ? moduleId + "_data" : "data");
+        String column = formatHeader(moduleId + "_data");
 
-        assertJsonColumn(table, column);
+        assertJsonColumn(USER_MODULES_TABLE, column);
 
         try (Connection conn = conn();
-             PreparedStatement stmt = conn.prepareStatement(String.format("SELECT `%s` FROM `%s` WHERE uuid = ?;", column, table))
+             PreparedStatement stmt = conn.prepareStatement(String.format("""
+                 SELECT `%s`
+                 FROM `%s`
+                 WHERE uuid = ?;
+                 """, column, USER_MODULES_TABLE))
         ) {
             setUUIDToStatement(stmt, 1, uuid);
 
@@ -70,6 +106,8 @@ public abstract class AbstractSQLStorage implements Storage {
         return null;
     }
 
+    protected abstract String getInsertOrUpdateModuleUserDataStatement(String table, String column);
+
     @Override
     public void saveModuleUserDataJson(UUID uuid, String moduleId, JsonObject json) {
         String table = moduleId != null ? USER_MODULES_TABLE : USER_TABLE;
@@ -78,7 +116,7 @@ public abstract class AbstractSQLStorage implements Storage {
         assertJsonColumn(table, column);
 
         try (Connection conn = conn();
-             PreparedStatement stmt = conn.prepareStatement(getInsertOrUpdateStatement(table, column))
+             PreparedStatement stmt = conn.prepareStatement(getInsertOrUpdateModuleUserDataStatement(table, column))
         ) {
             setUUIDToStatement(stmt, 1, uuid);
             setJsonToStatement(stmt, 2, json);
@@ -86,6 +124,32 @@ public abstract class AbstractSQLStorage implements Storage {
         } catch (SQLException e) {
             LushRewards.getInstance().getLogger().log(Level.SEVERE, "Failed to save user data: ", e);
         }
+    }
+
+    @Override
+    public Collection<String> findSimilarUsernames(String input) {
+        try (Connection conn = conn();
+             PreparedStatement stmt = conn.prepareStatement(String.format("""
+                 SELECT username
+                 FROM %s
+                 WHERE username LIKE CONCAT(?, '%%')
+                 LIMIT 50;
+                 """, USER_TABLE))
+        ) {
+            stmt.setString(1, input);
+
+            List<String> usernames = new ArrayList<>();
+            ResultSet results = stmt.executeQuery();
+            while (results.next()) {
+                usernames.add(results.getString("username"));
+            }
+
+            return usernames;
+        } catch (SQLException e) {
+            LushRewards.getInstance().getLogger().log(Level.SEVERE, "Failed to load user data: ", e);
+        }
+
+        return null;
     }
 
     protected void assertTable(String table) {
@@ -98,8 +162,6 @@ public abstract class AbstractSQLStorage implements Storage {
             LushRewards.getInstance().getLogger().log(Level.SEVERE, "Failed to assert table: ", e);
         }
     }
-
-    protected abstract String getInsertOrUpdateStatement(String table, String column);
 
     protected abstract void setUUIDToStatement(PreparedStatement stmt, int index, UUID uuid) throws SQLException;
 

@@ -15,6 +15,7 @@ import org.lushplugins.lushrewards.utils.Debugger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -113,7 +114,6 @@ public interface Storage {
         this.saveModuleUserDataJson(uuid, moduleId, json);
     }
 
-    // TODO: Add to StorageManager
     /**
      * Save a RewardUser and all cached module user data
      */
@@ -123,5 +123,5 @@ public interface Storage {
     }
 
     // TODO: Implement with new RewardUser storage structure
-//    Collection<String> findSimilarUsernames(String input);
+    Collection<String> findSimilarUsernames(String input);
 }

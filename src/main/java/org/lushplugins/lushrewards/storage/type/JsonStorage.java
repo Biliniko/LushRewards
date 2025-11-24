@@ -10,6 +10,8 @@ import org.lushplugins.lushrewards.storage.Storage;
 import org.lushplugins.lushrewards.user.RewardUser;
 
 import java.io.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 public class JsonStorage implements Storage {
@@ -70,6 +72,11 @@ public class JsonStorage implements Storage {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Collection<String> findSimilarUsernames(String input) {
+        return Collections.emptyList();
     }
 
     private void assertStorageDir() {

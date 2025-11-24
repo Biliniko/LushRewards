@@ -11,6 +11,7 @@ import org.lushplugins.lushrewards.storage.type.SQLiteStorage;
 import org.lushplugins.lushrewards.user.ModuleUserData;
 import org.lushplugins.lushrewards.user.RewardUser;
 
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -90,10 +91,13 @@ public class StorageManager {
         return runAsync(() -> storage.saveRewardUser(user));
     }
 
-    // TODO
-//    public CompletableFuture<Collection<String>> findSimilarUsernames(String input) {
-//        return runAsync(() -> storage.findSimilarUsernames(input));
-//    }
+    public CompletableFuture<Void> saveEntireRewardUser(RewardUser user) {
+        return runAsync(() -> storage.saveEntireRewardUser(user));
+    }
+
+    public CompletableFuture<Collection<String>> findSimilarUsernames(String input) {
+        return runAsync(() -> storage.findSimilarUsernames(input));
+    }
 
     private <T> CompletableFuture<T> runAsync(Callable<T> callable) {
         CompletableFuture<T> future = new CompletableFuture<>();
