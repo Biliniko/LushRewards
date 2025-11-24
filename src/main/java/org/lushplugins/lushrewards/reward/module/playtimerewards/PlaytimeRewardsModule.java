@@ -177,14 +177,7 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
             }
         });
 
-        String rewardMessage = LushRewards.getInstance().getConfigManager().getMessage("playtime-reward-given");
-        if (rewardMessage.isBlank()) {
-            // TODO: Deprecated for removal (Since 3.1.3)
-            LushRewards.getInstance().getLogger().warning("Deprecated: The 'daily-playtime-reward-given' message has been renamed to 'playtime-reward-given', make sure to adjust the messages section of your config.");
-            rewardMessage = LushRewards.getInstance().getConfigManager().getMessage("daily-playtime-reward-given");
-        }
-
-        ChatColorHandler.sendMessage(player, rewardMessage
+        ChatColorHandler.sendMessage(player, LushRewards.getInstance().getConfigManager().getMessage("playtime-reward-given")
             .replace("%minutes%", String.valueOf(playtimeSinceLastCollected))
             .replace("%hours%", String.valueOf((int) Math.floor(playtimeSinceLastCollected / 60D)))
             .replace("%total_minutes%", String.valueOf(playtime))
