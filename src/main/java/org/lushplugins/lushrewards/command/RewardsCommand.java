@@ -144,6 +144,8 @@ public class RewardsCommand {
     @CommandPermission("lushrewards.reload")
     public String reload() {
         LushRewards.getInstance().getConfigManager().reloadConfig();
+        LushRewards.getInstance().getRewardModuleManager().reloadModules();
+
         return LushRewards.getInstance().getConfigManager().getMessage("reload");
     }
 
