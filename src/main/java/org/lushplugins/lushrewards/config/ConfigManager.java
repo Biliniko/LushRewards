@@ -61,6 +61,7 @@ public class ConfigManager {
         reminderPeriod = config.getInt("reminder-period", 1800) * 20;
         reminderSound = StringUtils.getEnum(config.getString("reminder-sound", "none"), Sound.class).orElse(null);
 
+        // TODO: Remove and migrate to RewardModuleManager (i think that's the right class but double check)
         modules = new ConcurrentHashMap<>();
         try {
             Files.newDirectoryStream(MODULES_FOLDER.toPath(), "*.yml").forEach(entry -> {
