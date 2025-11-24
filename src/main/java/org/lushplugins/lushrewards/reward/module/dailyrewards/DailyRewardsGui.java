@@ -146,6 +146,7 @@ public record DailyRewardsGui(DailyRewardsModule module, ScrollType scrollType, 
                         }
 
                         slot.icon(collectedItemBuilder.build().asItemStack(player, true));
+                        gui.refresh(slot);
                     });
                 }
 
