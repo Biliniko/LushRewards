@@ -10,7 +10,6 @@ import revxrsal.commands.exception.UnknownCommandException;
 import revxrsal.commands.node.ExecutionContext;
 import revxrsal.commands.orphan.OrphanCommand;
 
-// TODO: Register this command
 @SuppressWarnings("unused")
 public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
 

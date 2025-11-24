@@ -39,7 +39,9 @@ import org.lushplugins.placeholderhandler.PlaceholderHandler;
 import org.lushplugins.pluginupdater.api.updater.Updater;
 import org.lushplugins.rewardsapi.api.RewardsAPI;
 import org.lushplugins.rewardsapi.api.reward.RewardTypes;
+import revxrsal.commands.Lamp;
 import revxrsal.commands.bukkit.BukkitLamp;
+import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import space.arim.morepaperlib.MorePaperLib;
 
 import java.time.Duration;
@@ -66,6 +68,7 @@ public final class LushRewards extends SpigotPlugin {
     private NotificationHandler notificationHandler;
     private UserCache userCache;
     private StorageManager storageManager;
+    private Lamp<BukkitCommandActor> lamp;
 
     @Override
     public void onLoad() {
@@ -123,15 +126,15 @@ public final class LushRewards extends SpigotPlugin {
             Duration.of(1, ChronoUnit.MINUTES)
         );
 
-        BukkitLamp.builder(this)
+        this.lamp = BukkitLamp.builder(this)
             .parameterTypes(parameterTypes -> parameterTypes
                 .addContextParameter(RewardUser.class, new RewardUserContextParameter())
                 .addParameterType(Migrator.class, new MigratorParameterType())
                 .addParameterType(RewardModule.class, new RewardModuleParameterType())
                 .addParameterType(RewardUser.class, new RewardUserParameterType()))
             .responseHandler(String.class, new StringMessageResponseHandler())
-            .build()
-            .register(new RewardsCommand());
+            .build();
+        this.lamp.register(new RewardsCommand());
 
         PlaceholderHandler placeholderHandler = PlaceholderHandler.builder(this)
             .registerParameterProvider(RewardUser.class, (type, parameter, context) -> {
@@ -144,6 +147,8 @@ public final class LushRewards extends SpigotPlugin {
             .build();
         placeholderHandler.register(new Placeholders());
         placeholderHandler.register(new DailyRewardsPlaceholders());
+
+        rewardModuleManager.getModules().forEach(RewardModule::onStartup);
 
         new Metrics(this, 22119);
     }
@@ -205,6 +210,10 @@ public final class LushRewards extends SpigotPlugin {
 
     public StorageManager getStorageManager() {
         return storageManager;
+    }
+
+    public Lamp<BukkitCommandActor> getLamp() {
+        return lamp;
     }
 
     public static LushRewards getInstance() {

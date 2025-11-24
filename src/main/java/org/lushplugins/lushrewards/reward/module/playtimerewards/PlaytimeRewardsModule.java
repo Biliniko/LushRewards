@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lushplugins.lushrewards.utils.Debugger;
 import org.lushplugins.lushrewards.utils.GuiTemplates;
+import revxrsal.commands.orphan.Orphans;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -91,6 +92,12 @@ public class PlaytimeRewardsModule extends RewardModule implements GuiDisplayer 
 
             LushRewards.getInstance().getLogger().info("Successfully loaded '" + id + "' user data for online players");
         }
+    }
+
+    @Override
+    public void onStartup() {
+        LushRewards.getInstance().getLamp().register(new Orphans(List.of("lushrewards %s edit-user".formatted(this.id)))
+            .handler(new PlaytimeRewardsCommands(this.id)));
     }
 
     public void checkForReset(RewardUser rewardUser, PlaytimeRewardsUserData userData) {

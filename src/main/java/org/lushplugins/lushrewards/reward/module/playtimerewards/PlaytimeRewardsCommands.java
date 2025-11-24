@@ -12,7 +12,6 @@ import revxrsal.commands.orphan.OrphanCommand;
 
 import java.time.LocalDate;
 
-// TODO: Register this command
 @SuppressWarnings("unused")
 public record PlaytimeRewardsCommands(String moduleId) implements OrphanCommand {
 

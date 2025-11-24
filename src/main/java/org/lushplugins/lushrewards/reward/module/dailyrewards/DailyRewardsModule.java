@@ -19,6 +19,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.lushplugins.lushrewards.utils.GuiTemplates;
+import revxrsal.commands.orphan.Orphans;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -124,6 +125,12 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
 
         LushRewards.getInstance().getLogger().info("Successfully loaded %s reward collections from '%s'"
             .formatted(rewards.size(), rewardsSection.getCurrentPath()));
+    }
+
+    @Override
+    public void onStartup() {
+        LushRewards.getInstance().getLamp().register(new Orphans(List.of("lushrewards %s edit-user".formatted(this.id)))
+            .handler(new DailyRewardsCommands(this.id)));
     }
 
     public boolean meetsRequiredPlaytime(Player player) {

@@ -7,7 +7,7 @@ import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 @SuppressWarnings("unused")
-@Command("rewards edit-user <player>")
+@Command("rewards edit-user <user>")
 public class EditUserCommand {
 
     @Subcommand("playtime set")

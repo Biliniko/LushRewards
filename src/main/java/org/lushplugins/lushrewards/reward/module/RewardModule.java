@@ -22,6 +22,11 @@ public abstract class RewardModule {
         return id;
     }
 
+    /**
+     * Ran once on server startup. This is NOT ran on plugin reload
+     */
+    public void onStartup() {}
+
     public abstract boolean requiresPlaytimeTracker();
 
     public abstract boolean hasClaimableRewards(Player player, RewardUser user);
@@ -33,8 +38,6 @@ public abstract class RewardModule {
 
     @SuppressWarnings("UnusedReturnValue")
     public abstract boolean claimRewards(Player player, RewardUser user);
-
-
 
     public boolean shouldNotify() {
         return shouldNotify;
