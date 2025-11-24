@@ -36,6 +36,7 @@ public class ConfigManager {
     private boolean playtimeIgnoreAfk;
     private int reminderPeriod;
     private Sound reminderSound;
+    private boolean enableUpdater;
 
     public ConfigManager() {
         LushRewards plugin = LushRewards.getInstance();
@@ -94,12 +95,7 @@ public class ConfigManager {
             plugin.log(Level.SEVERE, "Something went wrong whilst reading modules files", e);
         }
 
-        // TODO:
-//        boolean enableUpdater = config.getBoolean("enable-updater", true);
-//        plugin.getUpdater().setEnabled(enableUpdater);
-//        if (enableUpdater) {
-//            plugin.getUpdater().queueCheck();
-//        }
+        enableUpdater = config.getBoolean("enable-updater", true);
 
         reloadCategoryMap(config.getConfigurationSection("categories"));
         reloadItemTemplates(config.getConfigurationSection("item-templates"));
@@ -178,6 +174,10 @@ public class ConfigManager {
 
     public Sound getReminderSound() {
         return reminderSound;
+    }
+
+    public boolean isUpdaterEnabled() {
+        return enableUpdater;
     }
 
     private void reloadCategoryMap(ConfigurationSection categoriesSection) {

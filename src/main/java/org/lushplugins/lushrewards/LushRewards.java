@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 import org.lushplugins.guihandler.GuiHandler;
 import org.lushplugins.guihandler.slot.SlotProvider;
 import org.lushplugins.lushlib.libraries.jackson.databind.ObjectMapper;
@@ -101,13 +102,15 @@ public final class LushRewards extends SpigotPlugin {
         this.userCache = new UserCache(this);
         this.storageManager = new StorageManager();
 
-        this.updater = new Updater.Builder(this)
-            .modrinth("djC8I9ui", true)
-            .checkSchedule(600)
-            .notify(true)
-            .notificationPermission("lushrewards.update")
-            .notificationMessage("&#ffe27aA new &#e0c01b%plugin% &#ffe27aupdate is now available, type &#e0c01b'/rewards update' &#ffe27ato download it!")
-            .build();
+        if (configManager.isUpdaterEnabled()) {
+            this.updater = new Updater.Builder(this)
+                .modrinth("djC8I9ui", true)
+                .checkSchedule(600)
+                .notify(true)
+                .notificationPermission("lushrewards.update")
+                .notificationMessage("&#ffe27aA new &#e0c01b%plugin% &#ffe27aupdate is now available, type &#e0c01b'/rewards update' &#ffe27ato download it!")
+                .build();
+        }
 
         RewardsAPI.getMorePaperLib().scheduling().asyncScheduler().runAtFixedRate(
             () -> {
@@ -200,7 +203,7 @@ public final class LushRewards extends SpigotPlugin {
         return guiHandler;
     }
 
-    public Updater getUpdater() {
+    public @Nullable Updater getUpdater() {
         return updater;
     }
 
