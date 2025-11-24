@@ -122,6 +122,5 @@ public interface Storage {
         user.getAllCachedModuleData().forEach(this::saveModuleUserData);
     }
 
-    // TODO: Implement with new RewardUser storage structure
     Collection<String> findSimilarUsernames(String input);
 }
