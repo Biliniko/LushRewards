@@ -26,6 +26,7 @@ import org.lushplugins.lushrewards.user.UserCache;
 import org.lushplugins.lushrewards.utils.lamp.contextparameter.RewardUserContextParameter;
 import org.lushplugins.lushrewards.utils.lamp.parametertype.MigratorParameterType;
 import org.lushplugins.lushrewards.utils.lamp.parametertype.RewardModuleParameterType;
+import org.lushplugins.lushrewards.utils.lamp.parametertype.RewardUserParameterType;
 import org.lushplugins.lushrewards.utils.lamp.response.StringMessageResponseHandler;
 import org.lushplugins.lushrewards.utils.placeholder.LocalPlaceholders;
 import org.lushplugins.lushrewards.utils.gson.LocalDateTypeAdapter;
@@ -126,7 +127,8 @@ public final class LushRewards extends SpigotPlugin {
             .parameterTypes(parameterTypes -> parameterTypes
                 .addContextParameter(RewardUser.class, new RewardUserContextParameter())
                 .addParameterType(Migrator.class, new MigratorParameterType())
-                .addParameterType(RewardModule.class, new RewardModuleParameterType()))
+                .addParameterType(RewardModule.class, new RewardModuleParameterType())
+                .addParameterType(RewardUser.class, new RewardUserParameterType()))
             .responseHandler(String.class, new StringMessageResponseHandler())
             .build()
             .register(new RewardsCommand());
