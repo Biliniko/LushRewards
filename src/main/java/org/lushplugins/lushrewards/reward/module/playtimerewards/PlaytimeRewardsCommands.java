@@ -12,6 +12,8 @@ import revxrsal.commands.orphan.OrphanCommand;
 
 import java.time.LocalDate;
 
+// TODO: Make commands return messages and add get commands
+// TODO: Change command format to what NiceRon suggested (we love ron)
 @SuppressWarnings("unused")
 public record PlaytimeRewardsCommands(String moduleId) implements OrphanCommand {
 

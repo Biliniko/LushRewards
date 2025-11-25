@@ -10,6 +10,8 @@ import revxrsal.commands.exception.UnknownCommandException;
 import revxrsal.commands.node.ExecutionContext;
 import revxrsal.commands.orphan.OrphanCommand;
 
+// TODO: Make commands return messages and add get commands
+// TODO: Change command format to what NiceRon suggested (we love ron)
 @SuppressWarnings("unused")
 public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
 
