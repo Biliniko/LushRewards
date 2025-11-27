@@ -1,5 +1,6 @@
 package org.lushplugins.lushrewards.reward.module.dailyrewards;
 
+import org.lushplugins.lushlib.libraries.chatcolor.ChatColorHandler;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.user.RewardUser;
 import revxrsal.commands.annotation.CommandPlaceholder;
@@ -10,8 +11,6 @@ import revxrsal.commands.exception.UnknownCommandException;
 import revxrsal.commands.node.ExecutionContext;
 import revxrsal.commands.orphan.OrphanCommand;
 
-// TODO: Make commands return messages and add get commands
-// TODO: Change command format to what NiceRon suggested (we love ron)
 @SuppressWarnings("unused")
 public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
 
@@ -20,65 +19,104 @@ public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
         throw new UnknownCommandException(context.input().source());
     }
 
-    @Subcommand("<user> days set")
-    @CommandPermission("lushrewards.edituser.dailyrewards.daynum.set")
-    public void setDayNum(RewardUser user, int dayNum) {
+    @Subcommand("get <user> days")
+    @CommandPermission("lushrewards.edituser.dailyrewards.daynum.get")
+    public void getDayNum(BukkitCommandActor actor, RewardUser user) {
+        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2day num is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getDayNum()));
+        });
+    }
+
+    @Subcommand("modify <user> days")
+    @CommandPermission("lushrewards.edituser.dailyrewards.daynum.modify")
+    public void setDayNum(BukkitCommandActor actor, RewardUser user, int dayNum) {
         user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
             userData.setDayNum(dayNum);
             userData.setLastCollectedDate(DailyRewardsUserData.NEVER_COLLECTED);
 
             LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2day num has been set to &#66b04f%s"
+                .formatted(user.getUsername(), dayNum));
         });
     }
 
-    @Subcommand("<user> days reset")
+    @Subcommand("reset <user> days")
     @CommandPermission("lushrewards.edituser.dailyrewards.daynum.reset")
-    public void resetDayNum(RewardUser user) {
+    public void resetDayNum(BukkitCommandActor actor, RewardUser user) {
         user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
-            userData.setDayNum(0);
+            userData.setDayNum(1);
             userData.setLastCollectedDate(DailyRewardsUserData.NEVER_COLLECTED);
 
             LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2day num has been set to &#66b04f1"
+                .formatted(user.getUsername()));
         });
     }
 
-    @Subcommand("<user> streak set")
-    @CommandPermission("lushrewards.edituser.dailyrewards.streak.set")
-    public void setStreak(RewardUser user, int streak) {
+    @Subcommand("get <user> streak")
+    @CommandPermission("lushrewards.edituser.dailyrewards.streak.get")
+    public void getStreak(BukkitCommandActor actor, RewardUser user) {
+        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2streak is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getStreak()));
+        });
+    }
+
+    @Subcommand("modify <user> streak")
+    @CommandPermission("lushrewards.edituser.dailyrewards.streak.modify")
+    public void setStreak(BukkitCommandActor actor, RewardUser user, int streak) {
         user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
             userData.setStreak(streak);
 
             LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2streak has been set to &#66b04f%s"
+                .formatted(user.getUsername(), streak));
         });
     }
 
-    @Subcommand("<user> streak reset")
+    @Subcommand("reset <user> streak")
     @CommandPermission("lushrewards.edituser.dailyrewards.streak.reset")
-    public void resetStreak(RewardUser user) {
+    public void resetStreak(BukkitCommandActor actor, RewardUser user) {
         user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
             userData.setStreak(0);
 
             LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2streak has been set to &#66b04f0"
+                .formatted(user.getUsername()));
         });
     }
 
-    @Subcommand("<user> highest-streak set")
-    @CommandPermission("lushrewards.edituser.dailyrewards.higheststreak.set")
-    public void setHighestStreak(RewardUser user, int highestStreak) {
+    @Subcommand("get <user> highest-streak")
+    @CommandPermission("lushrewards.edituser.dailyrewards.higheststreak.get")
+    public void getHighestStreak(BukkitCommandActor actor, RewardUser user) {
+        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2highest streak is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getHighestStreak()));
+        });
+    }
+
+    @Subcommand("modify <user> highest-streak")
+    @CommandPermission("lushrewards.edituser.dailyrewards.higheststreak.modify")
+    public void setHighestStreak(BukkitCommandActor actor, RewardUser user, int highestStreak) {
         user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
             userData.setHighestStreak(highestStreak);
 
             LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2highest streak has been set to &#66b04f%s"
+                .formatted(user.getUsername(), highestStreak));
         });
     }
 
-    @Subcommand("<user> highest-streak reset")
+    @Subcommand("reset <user> highest-streak")
     @CommandPermission("lushrewards.edituser.dailyrewards.higheststreak.reset")
-    public void resetHighestStreak(RewardUser user) {
+    public void resetHighestStreak(BukkitCommandActor actor, RewardUser user) {
         user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
             userData.setHighestStreak(0);
 
             LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
+            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2highest streak has been set to &#66b04f0"
+                .formatted(user.getUsername()));
         });
     }
 }

@@ -131,7 +131,7 @@ public class DailyRewardsModule extends RewardModule implements GuiDisplayer {
 
     @Override
     public void onStartup() {
-        LushRewards.getInstance().getLamp().register(new Orphans(List.of("rewards module %s edit-user".formatted(this.id)))
+        LushRewards.getInstance().getLamp().register(new Orphans(List.of("rewards module %s".formatted(this.id)))
             .handler(new DailyRewardsCommands(this.id)));
     }
 
