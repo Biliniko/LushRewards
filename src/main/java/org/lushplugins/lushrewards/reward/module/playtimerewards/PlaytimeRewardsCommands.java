@@ -12,6 +12,7 @@ import revxrsal.commands.node.ExecutionContext;
 import revxrsal.commands.orphan.OrphanCommand;
 
 import java.time.LocalDate;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
 public record PlaytimeRewardsCommands(String moduleId) implements OrphanCommand {
@@ -23,10 +24,10 @@ public record PlaytimeRewardsCommands(String moduleId) implements OrphanCommand 
 
     @Subcommand("get <user> last-collected-playtime")
     @CommandPermission("lushrewards.edituser.playtimerewards.lastcollectedplaytime.get")
-    public void getLastCollectedPlaytime(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, PlaytimeRewardsUserData.class).thenAccept(userData -> {
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2last collected playtime is &#66b04f%s"
-                .formatted(user.getUsername(), userData.getLastCollectedPlaytime()));
+    public CompletableFuture<String> getLastCollectedPlaytime(BukkitCommandActor actor, RewardUser user) {
+        return user.getModuleData(this.moduleId, PlaytimeRewardsUserData.class).thenApply(userData -> {
+            return "&#66b04f%s's &#b7faa2last collected playtime is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getLastCollectedPlaytime());
         });
     }
 
@@ -44,10 +45,10 @@ public record PlaytimeRewardsCommands(String moduleId) implements OrphanCommand 
 
     @Subcommand("get <user> start-date")
     @CommandPermission("lushrewards.edituser.playtimerewards.startdate.get")
-    public void getStartDate(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, PlaytimeRewardsUserData.class).thenAccept(userData -> {
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2start date is &#66b04f%s"
-                .formatted(user.getUsername(), userData.getStartDate()));
+    public CompletableFuture<String> getStartDate(RewardUser user) {
+        return user.getModuleData(this.moduleId, PlaytimeRewardsUserData.class).thenApply(userData -> {
+            return "&#66b04f%s's &#b7faa2start date is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getStartDate());
         });
     }
 
@@ -65,10 +66,10 @@ public record PlaytimeRewardsCommands(String moduleId) implements OrphanCommand 
 
     @Subcommand("get <user> previous-day-end-playtime")
     @CommandPermission("lushrewards.edituser.playtimerewards.previousdayendplaytime.get")
-    public void getPreviousDayEndPlaytime(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, PlaytimeRewardsUserData.class).thenAccept(userData -> {
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2previous day end playtime is &#66b04f%s"
-                .formatted(user.getUsername(), userData.getPreviousDayEndPlaytime()));
+    public CompletableFuture<String> getPreviousDayEndPlaytime(RewardUser user) {
+        return user.getModuleData(this.moduleId, PlaytimeRewardsUserData.class).thenApply(userData -> {
+            return "&#66b04f%s's &#b7faa2previous day end playtime is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getPreviousDayEndPlaytime());
         });
     }
 

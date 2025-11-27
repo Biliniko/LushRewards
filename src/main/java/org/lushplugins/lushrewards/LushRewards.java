@@ -11,6 +11,7 @@ import org.lushplugins.lushlib.libraries.jackson.databind.ObjectMapper;
 import org.lushplugins.lushlib.libraries.jackson.databind.PropertyNamingStrategies;
 import org.lushplugins.lushlib.libraries.jackson.dataformat.yaml.YAMLFactory;
 import org.lushplugins.lushlib.serializer.JacksonHelper;
+import org.lushplugins.lushrewards.command.EditUserCommand;
 import org.lushplugins.lushrewards.command.RewardsCommand;
 import org.lushplugins.lushrewards.reward.module.RewardModuleManager;
 import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardsModule;
@@ -135,7 +136,10 @@ public final class LushRewards extends SpigotPlugin {
                 .addParameterType(RewardUser.class, new RewardUserParameterType()))
             .responseHandler(String.class, new StringMessageResponseHandler())
             .build();
-        this.lamp.register(new RewardsCommand());
+        this.lamp.register(
+            new RewardsCommand(),
+            new EditUserCommand()
+        );
 
         PlaceholderHandler placeholderHandler = PlaceholderHandler.builder(this)
             .registerParameterProvider(String.class, (type, parameter, context) -> parameter)

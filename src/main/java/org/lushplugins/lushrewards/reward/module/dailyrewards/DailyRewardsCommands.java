@@ -11,6 +11,8 @@ import revxrsal.commands.exception.UnknownCommandException;
 import revxrsal.commands.node.ExecutionContext;
 import revxrsal.commands.orphan.OrphanCommand;
 
+import java.util.concurrent.CompletableFuture;
+
 @SuppressWarnings("unused")
 public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
 
@@ -21,10 +23,10 @@ public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
 
     @Subcommand("get <user> days")
     @CommandPermission("lushrewards.edituser.dailyrewards.daynum.get")
-    public void getDayNum(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2day num is &#66b04f%s"
-                .formatted(user.getUsername(), userData.getDayNum()));
+    public CompletableFuture<String> getDayNum(RewardUser user) {
+        return user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenApply(userData -> {
+            return "&#66b04f%s's &#b7faa2day num is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getDayNum());
         });
     }
 
@@ -44,22 +46,15 @@ public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
     @Subcommand("reset <user> days")
     @CommandPermission("lushrewards.edituser.dailyrewards.daynum.reset")
     public void resetDayNum(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
-            userData.setDayNum(1);
-            userData.setLastCollectedDate(DailyRewardsUserData.NEVER_COLLECTED);
-
-            LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2day num has been set to &#66b04f1"
-                .formatted(user.getUsername()));
-        });
+        setDayNum(actor, user, 1);
     }
 
     @Subcommand("get <user> streak")
     @CommandPermission("lushrewards.edituser.dailyrewards.streak.get")
-    public void getStreak(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2streak is &#66b04f%s"
-                .formatted(user.getUsername(), userData.getStreak()));
+    public CompletableFuture<String> getStreak(RewardUser user) {
+        return user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenApply(userData -> {
+            return "&#66b04f%s's &#b7faa2streak is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getStreak());
         });
     }
 
@@ -78,21 +73,15 @@ public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
     @Subcommand("reset <user> streak")
     @CommandPermission("lushrewards.edituser.dailyrewards.streak.reset")
     public void resetStreak(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
-            userData.setStreak(0);
-
-            LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2streak has been set to &#66b04f0"
-                .formatted(user.getUsername()));
-        });
+        setStreak(actor, user , 0);
     }
 
     @Subcommand("get <user> highest-streak")
     @CommandPermission("lushrewards.edituser.dailyrewards.higheststreak.get")
-    public void getHighestStreak(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2highest streak is &#66b04f%s"
-                .formatted(user.getUsername(), userData.getHighestStreak()));
+    public CompletableFuture<String> getHighestStreak(RewardUser user) {
+        return user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenApply(userData -> {
+            return "&#66b04f%s's &#b7faa2highest streak is &#66b04f%s"
+                .formatted(user.getUsername(), userData.getHighestStreak());
         });
     }
 
@@ -111,12 +100,6 @@ public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
     @Subcommand("reset <user> highest-streak")
     @CommandPermission("lushrewards.edituser.dailyrewards.higheststreak.reset")
     public void resetHighestStreak(BukkitCommandActor actor, RewardUser user) {
-        user.getModuleData(this.moduleId, DailyRewardsUserData.class).thenAccept(userData -> {
-            userData.setHighestStreak(0);
-
-            LushRewards.getInstance().getStorageManager().saveModuleUserData(userData);
-            ChatColorHandler.sendMessage(actor.sender(), "&#66b04f%s's &#b7faa2highest streak has been set to &#66b04f0"
-                .formatted(user.getUsername()));
-        });
+        setHighestStreak(actor, user, 0);
     }
 }
