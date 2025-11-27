@@ -17,7 +17,7 @@ public record DailyRewardsCommands(String moduleId) implements OrphanCommand {
 
     @CommandPlaceholder
     public void command(ExecutionContext<BukkitCommandActor> context) {
-        throw new UnknownCommandException(context.input().source()); // TODO: test
+        throw new UnknownCommandException(context.input().source());
     }
 
     @Subcommand("<user> days set")
