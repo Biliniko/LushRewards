@@ -1,13 +1,11 @@
 package org.lushplugins.lushrewards.migrator.importer;
 
-import org.bukkit.Material;
 import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.lushplugins.lushlib.registry.RegistryUtils;
 import org.lushplugins.lushlib.utils.DisplayItemStack;
 import org.lushplugins.lushlib.utils.SimpleItemStack;
-import org.lushplugins.lushlib.utils.StringUtils;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.gui.GuiFormat;
 import org.lushplugins.lushrewards.reward.module.dailyrewards.DailyRewardCollection;
@@ -36,12 +34,13 @@ public class NDailyRewardsImporter extends ConfigImporter {
         if (newRewardsFile == null) {
             return false;
         }
+
         LushRewards.getInstance().saveResource("modules/daily-rewards.yml", true);
         YamlConfiguration localRewardsConfig = YamlConfiguration.loadConfiguration(newRewardsFile);
 
         localRewardsConfig.set("reset-days-at", importingConfig.getInt("days-row", -1));
 
-        ConfigurationSection importingRewardsSection = importingConfig.getConfigurationSection("rewards");
+        ConfigurationSection importingRewardsSection = importingConfig.getConfigurationSection("rewards.days");
         if (importingRewardsSection != null) {
             importingRewardsSection.getValues(false).forEach((dayNumRaw, value) -> {
                 if (value instanceof ConfigurationSection rewardSection) {
