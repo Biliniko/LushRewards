@@ -39,7 +39,7 @@ public class NDailyRewardsImporter extends ConfigImporter {
 
         localRewardsConfig.set("reset-days-at", importingConfig.getInt("days-row", -1));
 
-        ConfigurationSection importingRewardsSection = importingConfig.getConfigurationSection("rewards");
+        ConfigurationSection importingRewardsSection = importingConfig.getConfigurationSection("rewards.days");
         if (importingRewardsSection != null) {
             importingRewardsSection.getValues(false).forEach((dayNumRaw, value) -> {
                 if (value instanceof ConfigurationSection rewardSection) {
