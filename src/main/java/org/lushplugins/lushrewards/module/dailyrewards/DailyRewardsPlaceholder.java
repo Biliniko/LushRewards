@@ -43,6 +43,9 @@ public class DailyRewardsPlaceholder {
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof DailyRewardsModule module) {
                 DailyRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+                if (userData == null) {
+                    return "false";
+                }
                 return String.valueOf(userData.hasCollectedToday());
             } else {
                 return null;
@@ -56,6 +59,9 @@ public class DailyRewardsPlaceholder {
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof DailyRewardsModule module) {
                 DailyRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+                if (userData == null) {
+                    return "0";
+                }
                 return String.valueOf(userData.getDayNum());
             } else {
                 return null;
@@ -69,6 +75,9 @@ public class DailyRewardsPlaceholder {
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof DailyRewardsModule module) {
                 DailyRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+                if (userData == null) {
+                    return "0";
+                }
                 return String.valueOf(userData.getHighestStreak());
             } else {
                 return "0";
@@ -82,6 +91,9 @@ public class DailyRewardsPlaceholder {
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof DailyRewardsModule module) {
                 DailyRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+                if (userData == null) {
+                    return "0";
+                }
                 return String.valueOf(userData.getStreak());
             } else {
                 return "0";
@@ -95,6 +107,9 @@ public class DailyRewardsPlaceholder {
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof DailyRewardsModule module) {
                 DailyRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+                if (userData == null) {
+                    return "0";
+                }
                 RewardDay rewardDay = module.getRewardDay(LocalDate.now(), userData.getStreak());
                 return String.valueOf(rewardDay.getRewardCount());
             } else {
@@ -105,6 +120,9 @@ public class DailyRewardsPlaceholder {
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof DailyRewardsModule module) {
                 DailyRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+                if (userData == null) {
+                    return null;
+                }
 
                 int dayNum = Integer.parseInt(params[2]);
                 LocalDate date = userData.getExpectedDateOnDayNum(dayNum);
