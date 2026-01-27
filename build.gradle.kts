@@ -46,6 +46,14 @@ tasks {
         options.encoding = "UTF-8"
     }
 
+    jar {
+        archiveClassifier.set("plain")
+    }
+
+    assemble {
+        dependsOn(shadowJar)
+    }
+
     shadowJar {
         relocate("org.bstats", "org.lushplugins.lushrewards.libraries.bstats")
         relocate("org.enchantedskies", "org.lushplugins.lushrewards.libraries.enchantedskies")

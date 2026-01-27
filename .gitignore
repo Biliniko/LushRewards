@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+
+# Java
+*.class
+
+# IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+
+# Build outputs
+out/
+bin/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/

@@ -1,7 +1,9 @@
 package org.lushplugins.lushrewards.utils.placeholder;
 
 import org.lushplugins.lushrewards.LushRewards;
+import org.lushplugins.lushrewards.data.RewardUser;
 import org.lushplugins.lushrewards.module.RewardModule;
+import org.lushplugins.lushrewards.module.playtimetracker.PlaytimeTracker;
 import org.lushplugins.lushrewards.module.playtimetracker.PlaytimeTrackerModule;
 import org.lushplugins.lushlib.module.Module;
 import org.bukkit.entity.Player;
@@ -49,6 +51,57 @@ public class LocalPlaceholders {
             }
         }));
 
+        registerPlaceholder(new TimePlaceholder("daily_playtime", (params, player) -> {
+            if (player == null) {
+                return null;
+            }
+            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            if (rewardUser == null) {
+                return null;
+            }
+
+            Integer currentGlobalMinutes = getCurrentGlobalMinutes(player);
+            if (currentGlobalMinutes == null) {
+                return null;
+            }
+
+            return rewardUser.getDailyPlaytime(currentGlobalMinutes) * 60;
+        }));
+
+        registerPlaceholder(new TimePlaceholder("weekly_playtime", (params, player) -> {
+            if (player == null) {
+                return null;
+            }
+            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            if (rewardUser == null) {
+                return null;
+            }
+
+            Integer currentGlobalMinutes = getCurrentGlobalMinutes(player);
+            if (currentGlobalMinutes == null) {
+                return null;
+            }
+
+            return rewardUser.getWeeklyPlaytime(currentGlobalMinutes) * 60;
+        }));
+
+        registerPlaceholder(new TimePlaceholder("monthly_playtime", (params, player) -> {
+            if (player == null) {
+                return null;
+            }
+            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            if (rewardUser == null) {
+                return null;
+            }
+
+            Integer currentGlobalMinutes = getCurrentGlobalMinutes(player);
+            if (currentGlobalMinutes == null) {
+                return null;
+            }
+
+            return rewardUser.getMonthlyPlaytime(currentGlobalMinutes) * 60;
+        }));
+
         registerPlaceholder(new SimplePlaceholder("session_playtime", (params, player) -> {
             if (player == null) {
                 return null;
@@ -74,6 +127,23 @@ public class LocalPlaceholders {
                 return null;
             }
         }));
+    }
+
+    private Integer getCurrentGlobalMinutes(Player player) {
+        if (player == null) {
+            return null;
+        }
+
+        Optional<Module> optionalPlaytimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER);
+        if (optionalPlaytimeTracker.isPresent() && optionalPlaytimeTracker.get() instanceof PlaytimeTrackerModule playtimeTrackerModule) {
+            PlaytimeTracker playtimeTracker = playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId());
+            if (playtimeTracker != null) {
+                return playtimeTracker.getGlobalPlaytime();
+            }
+        }
+
+        RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+        return rewardUser != null ? rewardUser.getMinutesPlayed() : null;
     }
 
     public String parsePlaceholder(String params, Player player) {
