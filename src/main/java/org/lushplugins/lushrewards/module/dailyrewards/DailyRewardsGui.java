@@ -5,6 +5,7 @@ import org.bukkit.inventory.Inventory;
 import org.lushplugins.lushlib.utils.DisplayItemStack;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.config.ConfigManager;
+import org.lushplugins.lushrewards.gui.GuiCommandButton;
 import org.lushplugins.lushrewards.gui.GuiFormat;
 import org.lushplugins.lushrewards.module.playtimerewards.PlaytimeRewardsModule;
 import org.lushplugins.lushrewards.rewards.collections.RewardDay;
@@ -254,6 +255,27 @@ public class DailyRewardsGui extends Gui {
                         case ' ' ->
                             slotMap.get(character).forEach(slot -> inventory.setItem(slot, new ItemStack(Material.AIR)));
                         default -> slotMap.get(character).forEach(slot -> {
+                            GuiCommandButton guiButton = module.getGuiButton(character);
+                            if (guiButton != null) {
+                                DisplayItemStack displayItem = guiButton.getDisplayItem();
+
+                                if (!displayItem.hasType()) {
+                                    displayItem = DisplayItemStack.builder(displayItem)
+                                        .setType(Material.RED_STAINED_GLASS_PANE)
+                                        .build();
+
+                                    LushRewards.getInstance().getLogger().severe("Failed to display custom gui button '" + character + "' as it does not specify a valid material");
+                                }
+
+                                inventory.setItem(slot, displayItem.asItemStack(player, true));
+
+                                if (guiButton.hasCommands()) {
+                                    addButton(slot, event -> guiButton.execute(player));
+                                }
+
+                                return;
+                            }
+
                             DisplayItemStack item = LushRewards.getInstance().getConfigManager().getItemTemplate(String.valueOf(character), module);
 
                             if (!item.hasType()) {

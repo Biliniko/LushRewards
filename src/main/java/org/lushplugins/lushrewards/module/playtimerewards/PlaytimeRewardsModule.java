@@ -78,6 +78,8 @@ public class PlaytimeRewardsModule extends RewardModule implements UserDataModul
             reloadItemTemplates(itemTemplatesSection);
         }
 
+        reloadGuiButtons(config.getConfigurationSection("gui"));
+
         this.minutesToReward = new ConcurrentHashMap<>();
         for (Map<?, ?> rewardMap : config.getMapList(goalsSection)) {
             PlaytimeRewardCollection rewardCollection;

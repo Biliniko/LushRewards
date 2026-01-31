@@ -89,6 +89,8 @@ public class DailyRewardsModule extends RewardModule implements UserDataModule<D
             reloadItemTemplates(itemTemplatesSection);
         }
 
+        reloadGuiButtons(config.getConfigurationSection("gui"));
+
         this.rewards = new HashSet<>();
 
         LocalDate today = LocalDate.now();
