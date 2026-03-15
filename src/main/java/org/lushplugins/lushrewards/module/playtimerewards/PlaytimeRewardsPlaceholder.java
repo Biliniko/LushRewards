@@ -30,7 +30,7 @@ public class PlaytimeRewardsPlaceholder {
 
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof PlaytimeRewardsModule module) {
-                int globalPlaytime = rewardUser.getMinutesPlayed();
+                int globalPlaytime = module.getCurrentGlobalPlaytime(player.getUniqueId(), rewardUser);
                 if (module.getResetPlaytimeAt() <= 0) {
                     return globalPlaytime * 60;
                 } else {
@@ -55,7 +55,8 @@ public class PlaytimeRewardsPlaceholder {
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof PlaytimeRewardsModule module) {
                 PlaytimeRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
-                return (rewardUser.getMinutesPlayed() - userData.getLastCollectedPlaytime()) * 60;
+                int globalPlaytime = module.getCurrentGlobalPlaytime(player.getUniqueId(), rewardUser);
+                return (globalPlaytime - userData.getLastCollectedPlaytime()) * 60;
             } else {
                 return null;
             }
@@ -102,7 +103,14 @@ public class PlaytimeRewardsPlaceholder {
                 return null;
             }
 
+            int currentPlaytime = module.getCurrentGlobalPlaytime(player.getUniqueId(), rewardUser);
             int startPlaytime = userData.getLastCollectedPlaytime();
+            if (module.getResetPlaytimeAt() > 0) {
+                int previousDayEnd = userData.getPreviousDayEndPlaytime();
+                currentPlaytime -= previousDayEnd;
+                startPlaytime = Math.max(startPlaytime - previousDayEnd, 0);
+            }
+
             Integer nextRewardMinute = null;
             for (PlaytimeRewardCollection reward : module.getRewards()) {
                 Integer minutes = MathUtils.findFirstNumInSequence(reward.getStartMinute(), reward.getRepeatFrequency(), startPlaytime);
@@ -117,7 +125,7 @@ public class PlaytimeRewardsPlaceholder {
                 return 0;
             }
 
-            int remainingMinutes = Math.max(nextRewardMinute - rewardUser.getMinutesPlayed(), 0);
+            int remainingMinutes = Math.max(nextRewardMinute - currentPlaytime, 0);
             return remainingMinutes * 60;
         }));
     }

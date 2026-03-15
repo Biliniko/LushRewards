@@ -121,9 +121,9 @@ public class PlaytimeRewardsGui extends Gui {
                                 }
 
                                 String itemTemplate;
-                                if (minutes < lastCollectedPlaytime) {
+                                if (minutes <= lastCollectedPlaytime) {
                                     itemTemplate = "collected-reward";
-                                } else if (playtime > minutes) {
+                                } else if (playtime >= minutes) {
                                     itemTemplate = "redeemable-reward";
                                 } else {
                                     itemTemplate = "default-reward";

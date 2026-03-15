@@ -99,7 +99,7 @@ public class PlaytimeTracker {
 
                 if (module instanceof PlaytimeRewardsModule playtimeRewardsModule) {
                     if (playtimeRewardsModule.getRefreshTime() > 0 && globalTime % playtimeRewardsModule.getRefreshTime() == 0) {
-                        playtimeRewardsModule.claimRewards(player);
+                        playtimeRewardsModule.claimRewards(player, globalTime);
                     }
                 }
             }

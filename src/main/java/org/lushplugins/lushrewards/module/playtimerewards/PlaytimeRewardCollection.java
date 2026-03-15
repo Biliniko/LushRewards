@@ -48,7 +48,7 @@ public class PlaytimeRewardCollection extends RewardCollection {
         }
 
         if (repeatFrequency <= 0) {
-            return startMinute < playtime ? 1 : 0;
+            return startMinute <= playtime ? 1 : 0;
         }
 
         int endMinute = Math.min(playtime, repeatsUntil);
