@@ -6,7 +6,7 @@ import org.lushplugins.lushrewards.module.RewardModule;
 import org.lushplugins.lushrewards.module.playtimetracker.PlaytimeTracker;
 import org.lushplugins.lushrewards.module.playtimetracker.PlaytimeTrackerModule;
 import org.lushplugins.lushlib.module.Module;
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,19 +43,21 @@ public class LocalPlaceholders {
                 return null;
             }
 
-            Optional<Module> optionalPlaytimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER);
-            if (optionalPlaytimeTracker.isPresent() && optionalPlaytimeTracker.get() instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-                return String.valueOf(playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId()).getGlobalPlaytime());
-            } else {
-                return null;
+            PlaytimeTracker playtimeTracker = getPlaytimeTracker(player);
+            if (playtimeTracker != null) {
+                return String.valueOf(playtimeTracker.getGlobalPlaytime());
             }
+
+            RewardUser rewardUser = getRewardUser(player);
+            return rewardUser != null ? String.valueOf(rewardUser.getMinutesPlayed()) : null;
         }));
 
         registerPlaceholder(new TimePlaceholder("daily_playtime", (params, player) -> {
             if (player == null) {
                 return null;
             }
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+
+            RewardUser rewardUser = getRewardUser(player);
             if (rewardUser == null) {
                 return null;
             }
@@ -72,7 +74,8 @@ public class LocalPlaceholders {
             if (player == null) {
                 return null;
             }
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+
+            RewardUser rewardUser = getRewardUser(player);
             if (rewardUser == null) {
                 return null;
             }
@@ -89,7 +92,8 @@ public class LocalPlaceholders {
             if (player == null) {
                 return null;
             }
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+
+            RewardUser rewardUser = getRewardUser(player);
             if (rewardUser == null) {
                 return null;
             }
@@ -104,49 +108,51 @@ public class LocalPlaceholders {
 
         registerPlaceholder(new SimplePlaceholder("session_playtime", (params, player) -> {
             if (player == null) {
-                return null;
+                return "0";
             }
 
-            Optional<Module> optionalPlaytimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER);
-            if (optionalPlaytimeTracker.isPresent() && optionalPlaytimeTracker.get() instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-                return String.valueOf(playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId()).getSessionPlaytime());
-            } else {
-                return null;
-            }
+            PlaytimeTracker playtimeTracker = getPlaytimeTracker(player);
+            return playtimeTracker != null ? String.valueOf(playtimeTracker.getSessionPlaytime()) : "0";
         }));
 
         registerPlaceholder(new SimplePlaceholder("total_session_playtime", (params, player) -> {
             if (player == null) {
-                return null;
+                return "0";
             }
 
-            Optional<Module> optionalPlaytimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER);
-            if (optionalPlaytimeTracker.isPresent() && optionalPlaytimeTracker.get() instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-                return String.valueOf(playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId()).getTotalSessionPlaytime());
-            } else {
-                return null;
-            }
+            PlaytimeTracker playtimeTracker = getPlaytimeTracker(player);
+            return playtimeTracker != null ? String.valueOf(playtimeTracker.getTotalSessionPlaytime()) : "0";
         }));
     }
 
-    private Integer getCurrentGlobalMinutes(Player player) {
+    private PlaytimeTracker getPlaytimeTracker(OfflinePlayer player) {
+        Optional<Module> optionalPlaytimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER);
+        if (optionalPlaytimeTracker.isPresent() && optionalPlaytimeTracker.get() instanceof PlaytimeTrackerModule playtimeTrackerModule) {
+            return playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId());
+        }
+
+        return null;
+    }
+
+    private RewardUser getRewardUser(OfflinePlayer player) {
+        return LushRewards.getInstance().getDataManager().getOrRequestRewardUser(player);
+    }
+
+    private Integer getCurrentGlobalMinutes(OfflinePlayer player) {
         if (player == null) {
             return null;
         }
 
-        Optional<Module> optionalPlaytimeTracker = LushRewards.getInstance().getModule(RewardModule.Type.PLAYTIME_TRACKER);
-        if (optionalPlaytimeTracker.isPresent() && optionalPlaytimeTracker.get() instanceof PlaytimeTrackerModule playtimeTrackerModule) {
-            PlaytimeTracker playtimeTracker = playtimeTrackerModule.getPlaytimeTracker(player.getUniqueId());
-            if (playtimeTracker != null) {
-                return playtimeTracker.getGlobalPlaytime();
-            }
+        PlaytimeTracker playtimeTracker = getPlaytimeTracker(player);
+        if (playtimeTracker != null) {
+            return playtimeTracker.getGlobalPlaytime();
         }
 
-        RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+        RewardUser rewardUser = getRewardUser(player);
         return rewardUser != null ? rewardUser.getMinutesPlayed() : null;
     }
 
-    public String parsePlaceholder(String params, Player player) {
+    public String parsePlaceholder(String params, OfflinePlayer player) {
         String[] paramsArr = params.split("_");
 
         Placeholder currentPlaceholder = null;
@@ -191,6 +197,6 @@ public class LocalPlaceholders {
 
     @FunctionalInterface
     public interface PlaceholderFunction {
-        String apply(String[] params, Player player) ;
+        String apply(String[] params, OfflinePlayer player) ;
     }
 }

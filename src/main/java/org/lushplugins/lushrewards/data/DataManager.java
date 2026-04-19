@@ -1,23 +1,31 @@
 package org.lushplugins.lushrewards.data;
 
+import com.google.gson.JsonObject;
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushrewards.module.UserDataModule;
 import org.lushplugins.lushlib.manager.Manager;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lushplugins.lushrewards.storage.StorageManager;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class DataManager extends Manager {
+    private static final long OFFLINE_PLACEHOLDER_CACHE_TTL_MILLIS = TimeUnit.MINUTES.toMillis(2);
+
     private StorageManager storageManager;
     private final ConcurrentHashMap<UUID, RewardUser> rewardUsersCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, TimedCacheEntry<RewardUser>> offlineRewardUsersCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, TimedCacheEntry<UserDataModule.UserData>> offlineModuleUserDataCache = new ConcurrentHashMap<>();
+    private final AtomicLong nextOfflineCacheCleanupAt = new AtomicLong(0L);
 
     @Override
     public void onEnable() {
@@ -33,6 +41,9 @@ public class DataManager extends Manager {
             storageManager.disable();
             storageManager = null;
         }
+
+        offlineRewardUsersCache.clear();
+        offlineModuleUserDataCache.clear();
     }
 
     @Nullable
@@ -41,8 +52,41 @@ public class DataManager extends Manager {
     }
 
     @Nullable
+    public RewardUser getRewardUser(@NotNull OfflinePlayer player) {
+        return getRewardUser(player.getUniqueId());
+    }
+
+    @Nullable
     public RewardUser getRewardUser(@NotNull UUID uuid) {
         return rewardUsersCache.get(uuid);
+    }
+
+    @Nullable
+    public RewardUser getOrRequestRewardUser(@NotNull OfflinePlayer player) {
+        return getOrRequestRewardUser(player.getUniqueId());
+    }
+
+    @Nullable
+    public RewardUser getOrRequestRewardUser(@NotNull UUID uuid) {
+        long now = System.currentTimeMillis();
+        cleanupOfflineCachesIfDue();
+
+        RewardUser rewardUser = getRewardUser(uuid);
+        if (rewardUser != null) {
+            return rewardUser;
+        }
+
+        TimedCacheEntry<RewardUser> offlineEntry = offlineRewardUsersCache.get(uuid);
+        if (offlineEntry != null && !offlineEntry.isExpired(now)) {
+            return offlineEntry.value();
+        }
+
+        RewardUser loadedRewardUser = loadUserDataSync(uuid, null, RewardUser.class);
+        if (loadedRewardUser != null) {
+            offlineRewardUsersCache.put(uuid, new TimedCacheEntry<>(loadedRewardUser, System.currentTimeMillis() + OFFLINE_PLACEHOLDER_CACHE_TTL_MILLIS));
+        }
+
+        return loadedRewardUser;
     }
 
     public CompletableFuture<RewardUser> getOrLoadRewardUser(UUID uuid) {
@@ -78,6 +122,7 @@ public class DataManager extends Manager {
 
     public void unloadRewardUser(UUID uuid) {
         rewardUsersCache.remove(uuid);
+        invalidateOfflineRewardUser(uuid);
     }
 
     /**
@@ -123,6 +168,30 @@ public class DataManager extends Manager {
         } else {
             return loadUserData(uuid, module, cacheUser);
         }
+    }
+
+    @Nullable
+    public <T extends UserDataModule.UserData> T getOrRequestUserData(UUID uuid, UserDataModule<T> module) {
+        long now = System.currentTimeMillis();
+        cleanupOfflineCachesIfDue();
+
+        T userData = module.getUserData(uuid);
+        if (userData != null) {
+            return userData;
+        }
+
+        String key = module.getId() + ":" + uuid;
+        TimedCacheEntry<UserDataModule.UserData> offlineEntry = offlineModuleUserDataCache.get(key);
+        if (offlineEntry != null && !offlineEntry.isExpired(now)) {
+            return module.getUserDataClass().cast(offlineEntry.value());
+        }
+
+        T loadedUserData = loadUserDataSync(uuid, module.getId(), module.getUserDataClass());
+        if (loadedUserData != null) {
+            offlineModuleUserDataCache.put(key, new TimedCacheEntry<>(loadedUserData, System.currentTimeMillis() + OFFLINE_PLACEHOLDER_CACHE_TTL_MILLIS));
+        }
+
+        return loadedUserData;
     }
 
     public <T extends UserDataModule.UserData> CompletableFuture<T> loadUserData(UUID uuid, UserDataModule<T> module) {
@@ -196,7 +265,39 @@ public class DataManager extends Manager {
         return future;
     }
 
+    @Nullable
+    private <T extends UserDataModule.UserData> T loadUserDataSync(@NotNull UUID uuid, @Nullable String moduleId, Class<T> dataClass) {
+        JsonObject json;
+        try {
+            json = storageManager.loadModuleUserDataSync(uuid, moduleId);
+        } catch (Throwable e) {
+            LushRewards.getInstance().log(Level.WARNING, "Caught error when loading user data:", e);
+            return null;
+        }
+
+        if (json == null) {
+            if (moduleId != null) {
+                UserDataModule<?> module = (UserDataModule<?>) LushRewards.getInstance().getModule(moduleId).orElse(null);
+                return module != null ? dataClass.cast(module.getDefaultData(uuid)) : null;
+            }
+
+            return dataClass.isAssignableFrom(RewardUser.class) ? dataClass.cast(new RewardUser(uuid, null, 0)) : null;
+        }
+
+        try {
+            json.addProperty("uuid", uuid.toString());
+            json.addProperty("moduleId", moduleId);
+
+            return LushRewards.getInstance().getGson().fromJson(json, dataClass);
+        } catch (Throwable e) {
+            LushRewards.getInstance().log(Level.WARNING, "Caught error when parsing user data:", e);
+            return null;
+        }
+    }
+
     public CompletableFuture<Boolean> saveUserData(UserDataModule.UserData userData) {
+        invalidateOfflineCache(userData);
+
         return CompletableFuture.supplyAsync(() -> storageManager.saveModuleUserData(userData))
             .orTimeout(30, TimeUnit.SECONDS)
             .handle((storageData, exception) -> {
@@ -221,6 +322,7 @@ public class DataManager extends Manager {
         LushRewards.getInstance().getRewardModules().forEach(module -> {
             if (module instanceof UserDataModule<?> userDataModule) {
                 userDataModule.uncacheUserData(uuid);
+                invalidateOfflineModuleUserData(uuid, userDataModule.getId());
             }
         });
     }
@@ -247,6 +349,47 @@ public class DataManager extends Manager {
             return saveUserData(userData);
         } else {
             return CompletableFuture.completedFuture(true);
+        }
+    }
+
+    private void cleanupOfflineCachesIfDue() {
+        long now = System.currentTimeMillis();
+        long nextCleanup = nextOfflineCacheCleanupAt.get();
+        if (now < nextCleanup || !nextOfflineCacheCleanupAt.compareAndSet(nextCleanup, now + OFFLINE_PLACEHOLDER_CACHE_TTL_MILLIS)) {
+            return;
+        }
+
+        offlineRewardUsersCache.entrySet().removeIf(entry -> entry.getValue().isExpired(now));
+        offlineModuleUserDataCache.entrySet().removeIf(entry -> entry.getValue().isExpired(now));
+    }
+
+    private void invalidateOfflineCache(UserDataModule.UserData userData) {
+        if (userData instanceof RewardUser rewardUser) {
+            invalidateOfflineRewardUser(rewardUser.getUniqueId());
+            return;
+        }
+
+        invalidateOfflineModuleUserData(userData.getUniqueId(), userData.getModuleId());
+    }
+
+    private void invalidateOfflineRewardUser(UUID uuid) {
+        offlineRewardUsersCache.remove(uuid);
+    }
+
+    private void invalidateOfflineModuleUserData(UUID uuid, @Nullable String moduleId) {
+        if (moduleId != null) {
+            String key = moduleId + ":" + uuid;
+            offlineModuleUserDataCache.remove(key);
+            return;
+        }
+
+        String suffix = ":" + uuid;
+        offlineModuleUserDataCache.keySet().removeIf(key -> key.endsWith(suffix));
+    }
+
+    private record TimedCacheEntry<T>(T value, long expiresAt) {
+        private boolean isExpired(long now) {
+            return now >= expiresAt;
         }
     }
 }

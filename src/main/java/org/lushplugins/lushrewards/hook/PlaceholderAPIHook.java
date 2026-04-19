@@ -2,6 +2,7 @@ package org.lushplugins.lushrewards.hook;
 
 import org.lushplugins.lushrewards.LushRewards;
 import org.lushplugins.lushlib.hook.Hook;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,9 +37,14 @@ public class PlaceholderAPIHook extends Hook {
     }
 
     public static class PlaceholderExpansion extends me.clip.placeholderapi.expansion.PlaceholderExpansion {
-
-        public String onPlaceholderRequest(Player player, @NotNull String params) {
+        @Override
+        public String onRequest(OfflinePlayer player, @NotNull String params) {
             return LushRewards.getInstance().getLocalPlaceholders().parsePlaceholder(params, player);
+        }
+
+        @Override
+        public String onPlaceholderRequest(Player player, @NotNull String params) {
+            return onRequest(player, params);
         }
 
         public boolean persist() {
@@ -67,9 +73,14 @@ public class PlaceholderAPIHook extends Hook {
 
     @Deprecated(since = "3.0.0")
     public static class OutdatedPlaceholderExpansion extends me.clip.placeholderapi.expansion.PlaceholderExpansion {
-
-        public String onPlaceholderRequest(Player player, @NotNull String params) {
+        @Override
+        public String onRequest(OfflinePlayer player, @NotNull String params) {
             return LushRewards.getInstance().getLocalPlaceholders().parsePlaceholder(params, player);
+        }
+
+        @Override
+        public String onPlaceholderRequest(Player player, @NotNull String params) {
+            return onRequest(player, params);
         }
 
         public boolean persist() {

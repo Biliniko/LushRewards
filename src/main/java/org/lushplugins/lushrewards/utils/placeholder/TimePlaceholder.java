@@ -1,6 +1,6 @@
 package org.lushplugins.lushrewards.utils.placeholder;
 
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.lushplugins.lushrewards.LushRewards;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class TimePlaceholder extends Placeholder {
     }
 
     @Override
-    public String parse(String[] params, Player player) {
+    public String parse(String[] params, OfflinePlayer player) {
         try {
             Integer seconds = method.apply(params, player);
             if (seconds == null) {
@@ -58,6 +58,6 @@ public class TimePlaceholder extends Placeholder {
          * @param player Player
          * @return Time value (in seconds)
          */
-        Integer apply(String[] params, Player player) ;
+        Integer apply(String[] params, OfflinePlayer player) ;
     }
 }

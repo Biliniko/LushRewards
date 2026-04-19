@@ -296,6 +296,51 @@ public class DailyRewardsModule extends RewardModule implements UserDataModule<D
     }
 
     @NotNull
+    public PlaceholderState getPlaceholderState(UserData userData) {
+        LocalDate today = LocalDate.now();
+        LocalDate lastJoinDate = userData.getLastJoinDate();
+        LocalDate lastCollectedDate = userData.getLastCollectedDate();
+        int dayNum = userData.getDayNum();
+        int streak = userData.getStreak();
+        int highestStreak = userData.getHighestStreak();
+        LocalDate startDate = userData.getStartDate();
+
+        if (lastJoinDate != null && !lastJoinDate.isEqual(today)) {
+            boolean missedDay = lastCollectedDate == null || (lastCollectedDate.isBefore(today.minusDays(1)) && !lastCollectedDate.isEqual(LocalDate.of(1971, 10, 1)));
+
+            switch (getRewardMode()) {
+                case STREAK -> {
+                    if (missedDay) {
+                        dayNum = 1;
+                        streak = 1;
+                    } else {
+                        dayNum++;
+                    }
+                }
+                case ON_CLAIM_ONLY -> {
+                    if (userData.hasCollectedDay(dayNum) && (lastCollectedDate == null || !lastCollectedDate.isEqual(today))) {
+                        dayNum++;
+                    }
+                }
+                case ONLINE_ONLY -> dayNum++;
+                case DEFAULT -> dayNum = (int) (today.toEpochDay() - startDate.toEpochDay()) + 1;
+            }
+
+            if (missedDay && !streakBypass) {
+                streak = 1;
+            }
+
+            int resetDay = getResetDay();
+            if (resetDay > 0 && dayNum > resetDay) {
+                dayNum = 1;
+            }
+        }
+
+        boolean collectedToday = lastCollectedDate != null && lastCollectedDate.isEqual(today);
+        return new PlaceholderState(dayNum, streak, highestStreak, collectedToday);
+    }
+
+    @NotNull
     public Collection<DailyRewardCollection> getDayNumRewards(int day) {
         return rewards.stream().filter(rewardCollection -> rewardCollection.isAvailableOn(day)).toList();
     }
@@ -553,5 +598,11 @@ public class DailyRewardsModule extends RewardModule implements UserDataModule<D
         STREAK,
         ON_CLAIM_ONLY,
         ONLINE_ONLY
+    }
+
+    public record PlaceholderState(int dayNum, int streak, int highestStreak, boolean collectedToday) {
+        public LocalDate getExpectedDateOnDayNum(int targetDayNum) {
+            return LocalDate.now().plusDays(targetDayNum - dayNum);
+        }
     }
 }

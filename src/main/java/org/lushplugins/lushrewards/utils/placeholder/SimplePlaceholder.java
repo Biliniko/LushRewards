@@ -1,6 +1,6 @@
 package org.lushplugins.lushrewards.utils.placeholder;
 
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 
 public class SimplePlaceholder extends Placeholder {
     private final LocalPlaceholders.PlaceholderFunction method;
@@ -16,7 +16,7 @@ public class SimplePlaceholder extends Placeholder {
     }
 
     @Override
-    public String parse(String[] params, Player player) {
+    public String parse(String[] params, OfflinePlayer player) {
         try {
             return method.apply(params, player);
         } catch(Exception e) {

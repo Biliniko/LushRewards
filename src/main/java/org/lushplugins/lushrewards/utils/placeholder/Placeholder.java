@@ -1,6 +1,6 @@
 package org.lushplugins.lushrewards.utils.placeholder;
 
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ public abstract class Placeholder {
 
     abstract boolean matches(String string);
 
-    abstract String parse(String[] params, Player player);
+    abstract String parse(String[] params, OfflinePlayer player);
 
     public String getContent() {
         return content;

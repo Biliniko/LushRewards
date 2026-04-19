@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.UUID;
 
 public class PlaytimeRewardsPlaceholder {
     private static final HashSet<Placeholder> placeholderCache = new HashSet<>();
@@ -23,20 +24,24 @@ public class PlaytimeRewardsPlaceholder {
                 return null;
             }
 
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            RewardUser rewardUser = getRewardUser(player.getUniqueId());
             if (rewardUser == null) {
                 return null;
             }
 
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof PlaytimeRewardsModule module) {
-                int globalPlaytime = module.getCurrentGlobalPlaytime(player.getUniqueId(), rewardUser);
-                if (module.getResetPlaytimeAt() <= 0) {
-                    return globalPlaytime * 60;
-                } else {
-                    PlaytimeRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
-                    return (globalPlaytime - userData.getPreviousDayEndPlaytime()) * 60;
+                PlaytimeRewardsModule.UserData userData = getUserData(module, player.getUniqueId());
+                if (userData == null) {
+                    return null;
                 }
+
+                PlaytimeRewardsModule.PlaceholderState state = module.getPlaceholderState(rewardUser, userData);
+                if (module.getResetPlaytimeAt() <= 0) {
+                    return state.currentGlobalPlaytime() * 60;
+                }
+
+                return (state.currentGlobalPlaytime() - state.previousDayEndPlaytime()) * 60;
             } else {
                 return null;
             }
@@ -47,16 +52,20 @@ public class PlaytimeRewardsPlaceholder {
                 return null;
             }
 
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            RewardUser rewardUser = getRewardUser(player.getUniqueId());
             if (rewardUser == null) {
                 return null;
             }
 
             Optional<Module> optionalModule = LushRewards.getInstance().getModule(params[0]);
             if (optionalModule.isPresent() && optionalModule.get() instanceof PlaytimeRewardsModule module) {
-                PlaytimeRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
-                int globalPlaytime = module.getCurrentGlobalPlaytime(player.getUniqueId(), rewardUser);
-                return (globalPlaytime - userData.getLastCollectedPlaytime()) * 60;
+                PlaytimeRewardsModule.UserData userData = getUserData(module, player.getUniqueId());
+                if (userData == null) {
+                    return null;
+                }
+
+                PlaytimeRewardsModule.PlaceholderState state = module.getPlaceholderState(rewardUser, userData);
+                return (state.currentGlobalPlaytime() - state.lastCollectedPlaytime()) * 60;
             } else {
                 return null;
             }
@@ -67,9 +76,19 @@ public class PlaytimeRewardsPlaceholder {
             if (optionalModule.isPresent() && optionalModule.get() instanceof PlaytimeRewardsModule module) {
                 int resetPlaytimeAt = module.getResetPlaytimeAt();
                 if (resetPlaytimeAt > 0) {
-                    PlaytimeRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+                    if (player == null) {
+                        return null;
+                    }
+
+                    RewardUser rewardUser = getRewardUser(player.getUniqueId());
+                    if (rewardUser == null) {
+                        return null;
+                    }
+
+                    PlaytimeRewardsModule.UserData userData = getUserData(module, player.getUniqueId());
                     if (userData != null) {
-                        long start = LocalDateTime.of(userData.getStartDate(), LocalTime.MIN).toEpochSecond(ZoneOffset.UTC);
+                        PlaytimeRewardsModule.PlaceholderState state = module.getPlaceholderState(rewardUser, userData);
+                        long start = LocalDateTime.of(state.startDate(), LocalTime.MIN).toEpochSecond(ZoneOffset.UTC);
                         long now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
                         return (int) (now - start);
                     }
@@ -93,20 +112,21 @@ public class PlaytimeRewardsPlaceholder {
                 return null;
             }
 
-            RewardUser rewardUser = LushRewards.getInstance().getDataManager().getRewardUser(player);
+            RewardUser rewardUser = getRewardUser(player.getUniqueId());
             if (rewardUser == null) {
                 return null;
             }
 
-            PlaytimeRewardsModule.UserData userData = module.getUserData(player.getUniqueId());
+            PlaytimeRewardsModule.UserData userData = getUserData(module, player.getUniqueId());
             if (userData == null) {
                 return null;
             }
 
-            int currentPlaytime = module.getCurrentGlobalPlaytime(player.getUniqueId(), rewardUser);
-            int startPlaytime = userData.getLastCollectedPlaytime();
+            PlaytimeRewardsModule.PlaceholderState state = module.getPlaceholderState(rewardUser, userData);
+            int currentPlaytime = state.currentGlobalPlaytime();
+            int startPlaytime = state.lastCollectedPlaytime();
             if (module.getResetPlaytimeAt() > 0) {
-                int previousDayEnd = userData.getPreviousDayEndPlaytime();
+                int previousDayEnd = state.previousDayEndPlaytime();
                 currentPlaytime -= previousDayEnd;
                 startPlaytime = Math.max(startPlaytime - previousDayEnd, 0);
             }
@@ -144,5 +164,13 @@ public class PlaytimeRewardsPlaceholder {
 
     public void unregister() {
         LushRewards.getInstance().getLocalPlaceholders().unregisterPlaceholder(id);
+    }
+
+    private static RewardUser getRewardUser(UUID uuid) {
+        return LushRewards.getInstance().getDataManager().getOrRequestRewardUser(uuid);
+    }
+
+    private static PlaytimeRewardsModule.UserData getUserData(PlaytimeRewardsModule module, UUID uuid) {
+        return LushRewards.getInstance().getDataManager().getOrRequestUserData(uuid, module);
     }
 }

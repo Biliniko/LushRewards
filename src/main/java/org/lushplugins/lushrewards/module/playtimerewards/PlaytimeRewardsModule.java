@@ -170,6 +170,22 @@ public class PlaytimeRewardsModule extends RewardModule implements UserDataModul
         }
     }
 
+    @NotNull
+    public PlaceholderState getPlaceholderState(@Nullable RewardUser rewardUser, UserData userData) {
+        int currentGlobalPlaytime = getCurrentGlobalPlaytime(userData.getUniqueId(), rewardUser);
+        LocalDate startDate = userData.getStartDate();
+        int previousDayEndPlaytime = userData.getPreviousDayEndPlaytime();
+        int lastCollectedPlaytime = userData.getLastCollectedPlaytime();
+
+        if (resetPlaytimeAt > 0 && !startDate.isAfter(LocalDate.now().minusDays(resetPlaytimeAt))) {
+            startDate = LocalDate.now();
+            previousDayEndPlaytime = currentGlobalPlaytime;
+            lastCollectedPlaytime = currentGlobalPlaytime;
+        }
+
+        return new PlaceholderState(currentGlobalPlaytime, startDate, previousDayEndPlaytime, lastCollectedPlaytime);
+    }
+
     public void checkAllOnlineForReset() {
         if (resetPlaytimeAt <= 0) {
             return;
@@ -424,4 +440,6 @@ public class PlaytimeRewardsModule extends RewardModule implements UserDataModul
             this.previousDayEndPlaytime = previousDayEndPlaytime;
         }
     }
+
+    public record PlaceholderState(int currentGlobalPlaytime, @NotNull LocalDate startDate, int previousDayEndPlaytime, int lastCollectedPlaytime) {}
 }
